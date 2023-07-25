@@ -280,7 +280,7 @@
                     "type": "boolean",
                     "fa_icon": "fas fa-save",
                     "description": "Modifies Bowtie2\u2019s alignment so that multimappers in BAMs can be analysed with SmartMap.",
-                    "help_text": "--no-discordant --no-mixed -k 201 --minins 100 --maxins 2000"
+                    "help_text": "--no-discordant --no-mixed -k 101 --minins 100 --maxins 2000"
                 },
                 "bamtools_filter_pe_config": {
                     "type": "string",
