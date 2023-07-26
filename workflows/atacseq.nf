@@ -450,7 +450,11 @@ workflow ATACSEQ {
             params.skip_peak_annotation,
             params.skip_peak_qc
         )
-        ch_peaks    = MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_MACS2.out.peaks
+        ch_library_peaks                        = MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_MACS2.out.peaks
+        ch_library_frip_multiqc                 = MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_MACS2.out.frip_multiqc
+        ch_library_peak_count_multiqc           = MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_MACS2.out.peak_count_multiqc
+        ch_library_plot_homer_annotatepeaks_tsv = MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_MACS2.out.plot_homer_annotatepeaks_tsv
+        
         ch_versions = ch_versions.mix(MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_MACS2.out.versions)
     }
 
@@ -464,7 +468,7 @@ workflow ATACSEQ {
     ch_deseq2_clustering_library_multiqc = Channel.empty()
     if (!params.skip_consensus_peaks) {
         MERGED_LIBRARY_CONSENSUS_PEAKS (
-            ch_peaks,
+            ch_library_peaks,
             ch_bam_library,
             PREPARE_GENOME.out.fasta,
             PREPARE_GENOME.out.gtf,
@@ -486,7 +490,7 @@ workflow ATACSEQ {
         .out
         .bam
         .join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bai, by: [0])
-        .join(ch_peaks, by: [0])
+        .join(ch_library_peaks, by: [0])
         .set { ch_bam_peaks }
 
     //
@@ -671,7 +675,7 @@ workflow ATACSEQ {
             PREPARE_GENOME.out.fasta,
             PREPARE_GENOME.out.fai,
             MERGED_LIBRARY_BAM_TO_BIGWIG.out.bigwig.collect{it[1]}.ifEmpty([]),
-            ch_peaks.collect{it[1]}.ifEmpty([]),
+            ch_library_peaks.collect{it[1]}.ifEmpty([]),
             ch_macs2_consensus_library_bed.collect{it[1]}.ifEmpty([]),
             ch_ucsc_bedgraphtobigwig_replicate_bigwig.collect{it[1]}.ifEmpty([]),
             ch_macs2_replicate_peaks.collect{it[1]}.ifEmpty([]),
@@ -742,9 +746,9 @@ workflow ATACSEQ {
             ch_deeptoolsplotprofile_multiqc.collect{it[1]}.ifEmpty([]),
             ch_deeptoolsplotfingerprint_multiqc.collect{it[1]}.ifEmpty([]),
 
-            ch_peaks.frip_multiqc.collect{it[1]}.ifEmpty([]),
-            ch_peaks.peak_count_multiqc.collect{it[1]}.ifEmpty([]),
-            ch_peaks.plot_homer_annotatepeaks_tsv.collect().ifEmpty([]),
+            ch_library_frip_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_library_peak_count_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_library_plot_homer_annotatepeaks_tsv.collect().ifEmpty([]),
             ch_featurecounts_library_multiqc.collect{it[1]}.ifEmpty([]),
 
             ch_markduplicates_replicate_stats.collect{it[1]}.ifEmpty([]),
