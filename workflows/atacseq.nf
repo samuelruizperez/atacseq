@@ -257,8 +257,7 @@ workflow ATACSEQ {
         .map {
             meta, bam ->
                 def meta_clone = meta.clone()
-                meta_clone.remove('r
-                ead_group')
+                meta_clone.remove('read_group')
                 meta_clone.id = meta_clone.id - ~/_T\d+$/
                 [ meta_clone, bam ]
         }
