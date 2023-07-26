@@ -74,7 +74,7 @@ include { BAM_FILTER_BAMTOOLS as MERGED_LIBRARY_FILTER_BAM                    } 
 include { BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC as MERGED_LIBRARY_BAM_TO_BIGWIG   } from '../subworkflows/local/bam_bedgraph_bigwig_bedtools_ucsc'
 include { BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC as MERGED_REPLICATE_BAM_TO_BIGWIG } from '../subworkflows/local/bam_bedgraph_bigwig_bedtools_ucsc'
 
-include { BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER as MERGED_LIBRARY_CALL_ANNOTATE_PEAKS   } from '../subworkflows/local/bam_peaks_call_qc_annotate_macs2_homer.nf'
+include { BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER as MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_MACS2   } from '../subworkflows/local/bam_peaks_call_qc_annotate_macs2_homer.nf'
 include { BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER as MERGED_REPLICATE_CALL_ANNOTATE_PEAKS } from '../subworkflows/local/bam_peaks_call_qc_annotate_macs2_homer.nf'
 include { BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 as MERGED_LIBRARY_CONSENSUS_PEAKS   } from '../subworkflows/local/bed_consensus_quantify_qc_bedtools_featurecounts_deseq2.nf'
 include { BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 as MERGED_REPLICATE_CONSENSUS_PEAKS } from '../subworkflows/local/bed_consensus_quantify_qc_bedtools_featurecounts_deseq2.nf'
@@ -257,7 +257,8 @@ workflow ATACSEQ {
         .map {
             meta, bam ->
                 def meta_clone = meta.clone()
-                meta_clone.remove('read_group')
+                meta_clone.remove('r
+                ead_group')
                 meta_clone.id = meta_clone.id - ~/_T\d+$/
                 [ meta_clone, bam ]
         }
@@ -432,21 +433,29 @@ workflow ATACSEQ {
     //
     // SUBWORKFLOW: Call peaks with MACS2, annotate with HOMER and perform downstream QC
     //
-    MERGED_LIBRARY_CALL_ANNOTATE_PEAKS (
-        ch_bam_library,
-        PREPARE_GENOME.out.fasta,
-        PREPARE_GENOME.out.gtf,
-        PREPARE_GENOME.out.macs_gsize,
-        ".mLb.clN_peaks.annotatePeaks.txt",
-        ch_multiqc_merged_library_peak_count_header,
-        ch_multiqc_merged_library_frip_score_header,
-        ch_multiqc_merged_library_peak_annotation_header,
-        params.narrow_peak,
-        params.skip_peak_annotation,
-        params.skip_peak_qc
-    )
-    ch_versions = ch_versions.mix(MERGED_LIBRARY_CALL_ANNOTATE_PEAKS.out.versions)
 
+    // Pending: modify MERGED_LIBRARY_CALL_ANNOTATE_PEAKS name
+    // MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_MACS2
+
+    if (params.peak_caller == 'macs2') {
+        MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_MACS2 (
+            ch_bam_library,
+            PREPARE_GENOME.out.fasta,
+            PREPARE_GENOME.out.gtf,
+            PREPARE_GENOME.out.macs_gsize,
+            ".mLb.clN_peaks.annotatePeaks.txt",
+            ch_multiqc_merged_library_peak_count_header,
+            ch_multiqc_merged_library_frip_score_header,
+            ch_multiqc_merged_library_peak_annotation_header,
+            params.narrow_peak,
+            params.skip_peak_annotation,
+            params.skip_peak_qc
+        )
+        ch_peaks    = MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_MACS2.out.peaks
+        ch_versions = ch_versions.mix(MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_MACS2.out.versions)
+    }
+
+    
     //
     // SUBWORKFLOW: Consensus peaks analysis
     //
@@ -456,7 +465,7 @@ workflow ATACSEQ {
     ch_deseq2_clustering_library_multiqc = Channel.empty()
     if (!params.skip_consensus_peaks) {
         MERGED_LIBRARY_CONSENSUS_PEAKS (
-            MERGED_LIBRARY_CALL_ANNOTATE_PEAKS.out.peaks,
+            ch_peaks,
             ch_bam_library,
             PREPARE_GENOME.out.fasta,
             PREPARE_GENOME.out.gtf,
@@ -478,7 +487,7 @@ workflow ATACSEQ {
         .out
         .bam
         .join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bai, by: [0])
-        .join(MERGED_LIBRARY_CALL_ANNOTATE_PEAKS.out.peaks, by: [0])
+        .join(ch_peaks, by: [0])
         .set { ch_bam_peaks }
 
     //
@@ -662,7 +671,7 @@ workflow ATACSEQ {
             PREPARE_GENOME.out.fasta,
             PREPARE_GENOME.out.fai,
             MERGED_LIBRARY_BAM_TO_BIGWIG.out.bigwig.collect{it[1]}.ifEmpty([]),
-            MERGED_LIBRARY_CALL_ANNOTATE_PEAKS.out.peaks.collect{it[1]}.ifEmpty([]),
+            ch_peaks.collect{it[1]}.ifEmpty([]),
             ch_macs2_consensus_library_bed.collect{it[1]}.ifEmpty([]),
             ch_ucsc_bedgraphtobigwig_replicate_bigwig.collect{it[1]}.ifEmpty([]),
             ch_macs2_replicate_peaks.collect{it[1]}.ifEmpty([]),
@@ -733,9 +742,9 @@ workflow ATACSEQ {
             ch_deeptoolsplotprofile_multiqc.collect{it[1]}.ifEmpty([]),
             ch_deeptoolsplotfingerprint_multiqc.collect{it[1]}.ifEmpty([]),
 
-            MERGED_LIBRARY_CALL_ANNOTATE_PEAKS.out.frip_multiqc.collect{it[1]}.ifEmpty([]),
-            MERGED_LIBRARY_CALL_ANNOTATE_PEAKS.out.peak_count_multiqc.collect{it[1]}.ifEmpty([]),
-            MERGED_LIBRARY_CALL_ANNOTATE_PEAKS.out.plot_homer_annotatepeaks_tsv.collect().ifEmpty([]),
+            ch_peaks.out.frip_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_peaks.out.peak_count_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_peaks.out.plot_homer_annotatepeaks_tsv.collect().ifEmpty([]),
             ch_featurecounts_library_multiqc.collect{it[1]}.ifEmpty([]),
 
             ch_markduplicates_replicate_stats.collect{it[1]}.ifEmpty([]),
