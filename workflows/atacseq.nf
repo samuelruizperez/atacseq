@@ -645,7 +645,7 @@ workflow ATACSEQ {
         //
         if (!params.skip_consensus_peaks) {
             MERGED_REPLICATE_CONSENSUS_PEAKS (
-                MERGED_REPLICATE_CALL_ANNOTATE_PEAKS.out.peaks,
+                MERGED_REPLICATE_CALL_ANNOTATE_PEAKS_MACS2.out.peaks,
                 ch_merged_library_replicate_bam,
                 PREPARE_GENOME.out.fasta,
                 PREPARE_GENOME.out.gtf,
