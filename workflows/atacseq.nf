@@ -741,9 +741,9 @@ workflow ATACSEQ {
             ch_deeptoolsplotprofile_multiqc.collect{it[1]}.ifEmpty([]),
             ch_deeptoolsplotfingerprint_multiqc.collect{it[1]}.ifEmpty([]),
 
-            ch_peaks.out.frip_multiqc.collect{it[1]}.ifEmpty([]),
-            ch_peaks.out.peak_count_multiqc.collect{it[1]}.ifEmpty([]),
-            ch_peaks.out.plot_homer_annotatepeaks_tsv.collect().ifEmpty([]),
+            ch_peaks.frip_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_peaks.peak_count_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_peaks.plot_homer_annotatepeaks_tsv.collect().ifEmpty([]),
             ch_featurecounts_library_multiqc.collect{it[1]}.ifEmpty([]),
 
             ch_markduplicates_replicate_stats.collect{it[1]}.ifEmpty([]),
