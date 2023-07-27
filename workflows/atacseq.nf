@@ -507,7 +507,7 @@ workflow ATACSEQ {
             .bam
             .map {
                 meta, bams ->
-                    [ meta , bams[0] ]
+                    [ meta , bams[0], bams[1] ]
             }
             .set { ch_merged_library_c_bams }
     } else {
@@ -516,12 +516,10 @@ workflow ATACSEQ {
             .bam
             .map {
                 meta, bam  ->
-                    [ meta , bam ]
+                    [ meta , bam, [] ]
             }
             .set { ch_merged_library_c_bams }
     }
-
-
 
     ch_merged_library_c_bams
         .map {
