@@ -497,10 +497,33 @@ workflow ATACSEQ {
     //
     // SUBWORKFLOW: Call peaks with Genrich, annotate with HOMER and perform downstream QC
     //
+
     // Check if we have multiple replicates
-    PICARD_MERGESAMFILES_LIBRARY
-        .out
-        .bam
+
+    // Create channel: [ val(meta), bam, control_bam ]
+    if (params.with_control) {
+        PICARD_MERGESAMFILES_LIBRARY
+            .out
+            .bam
+            .map {
+                meta, bams ->
+                    [ meta , bams[0] ]
+            }
+            .set { ch_merged_library_c_bams }
+    } else {
+        PICARD_MERGESAMFILES_LIBRARY
+            .out
+            .bam
+            .map {
+                meta, bam  ->
+                    [ meta , bam ]
+            }
+            .set { ch_merged_library_c_bams }
+    }
+
+
+
+    ch_merged_library_c_bams
         .map {
             meta, bam ->
                 def meta_clone = meta.clone()
