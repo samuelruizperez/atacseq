@@ -390,7 +390,28 @@
                     "type": "boolean",
                     "description": "Skip consensus peak generation, annotation and counting.",
                     "fa_icon": "fas fa-fast-forward"
+                },
+                "save_genrich_pileup": {
+                    "type": "boolean",
+                    "description": "Instruct Genrich to create bedGraph files normalised to signal per million reads.",
+                    "fa_icon": "fas fa-save"
+                },
+                "save_genrich_pvalues": {
+                    "type": "boolean",
+                    "description": "Instruct Genrich to create bedGraph files with p-values.",
+                    "fa_icon": "fas fa-save"
+                },
+                "save_genrich_bed": {
+                    "type": "boolean",
+                    "description": "Instruct Genrich to create BED files.",
+                    "fa_icon": "fas fa-save"
+                },
+                "save_genrich_duplicates": {
+                    "type": "boolean",
+                    "description": "Instruct Genrich to save duplicates.",
+                    "fa_icon": "fas fa-save"
                 }
+
             }
         },
         "deseq_qc_options": {
