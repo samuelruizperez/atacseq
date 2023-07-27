@@ -8,8 +8,7 @@ process GENRICH {
         'biocontainers/genrich:0.6.1--h5bf99c6_1' }"
 
     input:
-    tuple val(meta), path(treatment_bam)
-    path  control_bam
+    tuple val(meta), path(treatment_bam), path(controlbam)
     path  blacklist_bed
     val   save_pvalues
     val   save_pileup
@@ -30,7 +29,7 @@ process GENRICH {
     script:
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
-    def control    = control_bam    ? "-c $control_bam"               : ''
+    def control    = controlbam    ? "-c $control_bam"               : ''
     def blacklist  = blacklist_bed  ? "-E $blacklist_bed"             : ""
     def pvalues    = save_pvalues   ? "-f ${prefix}.pvalues.bedGraph" : ""
     def pileup     = save_pileup    ? "-k ${prefix}.pileup.bedGraph"  : ""
