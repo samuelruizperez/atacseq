@@ -40,6 +40,10 @@ process MULTIQC {
     path ('macs2/merged_library/annotation/*')
     path ('macs2/merged_library/featurecounts/*')
 
+    path ('genrich/merged_library/peaks/*')
+    path ('genrich/merged_library/peaks/*')
+    path ('genrich/merged_library/annotation/*')
+
     path ('alignment/merged_replicate/*')
     path ('alignment/merged_replicate/*')
     path ('alignment/merged_replicate/*')
