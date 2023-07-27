@@ -41,11 +41,11 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
     // Call peaks with Genrich
     //
     GENRICH (
-        ch_bam
-        blacklist_bed: ch_blacklist_regions
-        save_pvalues
-        save_pileup
-        save_bed
+        ch_bam,
+        blacklist_bed: ch_blacklist_regions,
+        save_pvalues,
+        save_pileup,
+        save_bed,
         save_duplicates
     
     )
