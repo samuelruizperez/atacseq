@@ -498,7 +498,6 @@ workflow ATACSEQ {
     // SUBWORKFLOW: Call peaks with Genrich, annotate with HOMER and perform downstream QC
     //
 
-////////
     // Check if we have multiple replicates
     PICARD_MERGESAMFILES_LIBRARY
         .out
@@ -520,7 +519,7 @@ workflow ATACSEQ {
         .set { ch_merged_library_bams }
 
 
-//    if (params.peak_caller == 'genrich') {
+    // if (params.peak_caller == 'genrich') {
     MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_GENRICH (
         ch_merged_library_bams,
         PREPARE_GENOME.out.fasta,
@@ -546,7 +545,7 @@ workflow ATACSEQ {
     ch_library_plot_homer_annotatepeaks_tsv         = MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_GENRICH.out.plot_homer_annotatepeaks_tsv
     
     ch_versions = ch_versions.mix(MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_GENRICH.out.versions)
-//    }
+    //}
 
 
 
