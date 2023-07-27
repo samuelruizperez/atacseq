@@ -497,7 +497,6 @@ workflow ATACSEQ {
     //
     // SUBWORKFLOW: Call peaks with Genrich, annotate with HOMER and perform downstream QC
     //
-
     // Check if we have multiple replicates
     PICARD_MERGESAMFILES_LIBRARY
         .out
@@ -532,11 +531,11 @@ workflow ATACSEQ {
         
         params.narrow_peak,
         params.skip_peak_annotation,
-        params.skip_peak_qc
+        params.skip_peak_qc,
 
-        params.save_genrich_pvalues
-        params.save_genrich_pileup
-        params.save_genrich_bed
+        params.save_genrich_pvalues,
+        params.save_genrich_pileup,
+        params.save_genrich_bed,
         params.save_genrich_duplicates
     )
     ch_library_genrich_peaks                        = MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_GENRICH.out.peaks
