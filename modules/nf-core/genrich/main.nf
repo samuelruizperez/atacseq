@@ -44,6 +44,10 @@ process GENRICH {
             duplicates = "-r -R ${prefix}.duplicates.txt"
         }
     }
+
+    if (meta.single_end) {
+        args = args + " -y "
+    }
     """
     Genrich \\
         $treatment \\
@@ -62,4 +66,5 @@ process GENRICH {
         genrich: \$(echo \$(Genrich --version 2>&1) | sed 's/^Genrich, version //; s/ .*\$//')
     END_VERSIONS
     """
+
 }

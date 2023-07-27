@@ -109,6 +109,7 @@ include { ATAQV_MKARV as MERGED_LIBRARY_ATAQV_MKARV                             
 
 include { PICARD_MERGESAMFILES as PICARD_MERGESAMFILES_LIBRARY   } from '../modules/nf-core/picard/mergesamfiles/main'
 include { PICARD_MERGESAMFILES as PICARD_MERGESAMFILES_REPLICATE } from '../modules/nf-core/picard/mergesamfiles/main'
+include { SAMTOOLS_SORT as SAMTOOLS_SORT_FOR_GENRICH } from '../modules/nf-core/samtools/sort/main'
 
 //
 // SUBWORKFLOW: Consisting entirely of nf-core/modules
@@ -498,9 +499,18 @@ workflow ATACSEQ {
     // SUBWORKFLOW: Call peaks with Genrich, annotate with HOMER and perform downstream QC
     //
 
+    //
+    // Name sort BAM before calling peaks with Genrich
+    //
+    SAMTOOLS_SORT_FOR_GENRICH (
+        PICARD_MERGESAMFILES_LIBRARY.out.bam
+    )
+    ch_versions = ch_versions.mix(SAMTOOLS_SORT_FOR_GENRICH.out.versions.first())
+
+
     // Create channel: [ val(meta), bam, control_bam ]
     if (params.with_control) {
-        PICARD_MERGESAMFILES_LIBRARY
+        SAMTOOLS_SORT_FOR_GENRICH
             .out
             .bam
             .map {
@@ -509,7 +519,7 @@ workflow ATACSEQ {
             }
             .set { ch_merged_library_c_bams }
     } else {
-        PICARD_MERGESAMFILES_LIBRARY
+        SAMTOOLS_SORT_FOR_GENRICH
             .out
             .bam
             .map {
