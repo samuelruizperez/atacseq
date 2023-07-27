@@ -42,7 +42,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
     //
     GENRICH (
         ch_bam,
-        blacklist_bed: ch_blacklist_regions,
+        ch_blacklist_regions,
         save_pvalues,
         save_pileup,
         save_bed,
