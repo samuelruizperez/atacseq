@@ -38,6 +38,7 @@ process GENOME_BLACKLIST_REGIONS {
     } else {
         """
         awk '{print \$1, '0' , \$2}' OFS='\t' $sizes $mito_filter > $whitelist
+        complementBed -i $whitelist -g $sizes > $blacklist_out
 
         cat <<-END_VERSIONS > versions.yml
         "${task.process}":
