@@ -82,8 +82,6 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
                 }
         }
         .set { ch_bam_peaks }
-        .view()
-
 
 
     //
