@@ -552,7 +552,7 @@ workflow ATACSEQ {
         PREPARE_GENOME.out.fasta,
         PREPARE_GENOME.out.gtf,
 
-        PREPARE_GENOME.out.filtered_bed.first(),
+        PREPARE_GENOME.out.blacklist_bed,
 
         ".mLb.clN_peaks.annotatePeaks.txt",
         ch_multiqc_merged_library_genrich_peak_count_header,
