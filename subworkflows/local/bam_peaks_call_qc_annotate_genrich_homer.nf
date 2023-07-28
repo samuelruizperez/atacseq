@@ -63,14 +63,35 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
         }
         .set { ch_genrich_peaks }
 
-    // Create channels: [ meta, ip_bam, peaks ]
-    ch_bam
-        .join(ch_genrich_peaks, by: [0])
+
+    // Create channels: [ meta, ip_bam_rep, peaks_rep_group ]
+    // give each ip_bam_rep the peaks_rep_group that matches their id
+    ch_genrich_peaks
         .map {
-            meta, ip_bam, control_bam, peaks ->
-                [ meta, ip_bam, peaks ]
+            meta, peaks ->
+                peaks.collect {
+                    [ meta, it ]
+                }
         }
+        .flatten()
         .set { ch_bam_peaks }
+    
+
+
+
+
+    // Create channels: [ meta, ip_bam, peaks ]
+    //ch_bam
+    //    .join(ch_genrich_peaks, by: [0])
+    //    .map {
+    //        meta, ip_bam, control_bam, peaks ->
+    //            [ meta, ip_bam, peaks ]
+    //    }
+    //    .set { ch_bam_peaks }
+
+
+
+
 
     //
     // Calculate FRiP score
