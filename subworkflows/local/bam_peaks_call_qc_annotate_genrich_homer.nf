@@ -85,7 +85,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
         .map {
                 meta, ip_bam, peaks ->
                     def meta_clone = meta.clone()
-                    meta_clone.id = ip_bam.split("\\.")[0]
+                    meta_clone.id = ip_bam.getName().split("\\.")[0]
                     [ meta_clone, ip_bam, peaks ]
         }
         .set { ch_bam_peaks }
