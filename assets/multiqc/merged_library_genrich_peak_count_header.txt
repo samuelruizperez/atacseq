@@ -1,4 +1,4 @@
-#id: 'mlib_peak_count'
+#id: 'mlib_genrich_peak_count'
 #section_name: 'MERGED LIB: Genrich peak count'
 #description: "is calculated from total number of peaks called by
 #	       <a href='https://github.com/jsh58/Genrich' target='_blank'>Genrich</a>"

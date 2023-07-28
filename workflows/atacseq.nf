@@ -568,10 +568,10 @@ workflow ATACSEQ {
         params.save_genrich_bed,
         params.save_genrich_duplicates
     )
-    ch_library_genrich_peaks                        = MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_GENRICH.out.peaks
-    ch_library_genrich_frip_multiqc                 = MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_GENRICH.out.frip_multiqc
-    ch_library_genrich_peak_count_multiqc           = MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_GENRICH.out.peak_count_multiqc
-    ch_library_plot_homer_annotatepeaks_tsv         = MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_GENRICH.out.plot_homer_annotatepeaks_tsv
+    ch_library_genrich_peaks                         = MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_GENRICH.out.peaks
+    ch_library_genrich_frip_multiqc                  = MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_GENRICH.out.frip_multiqc
+    ch_library_genrich_peak_count_multiqc            = MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_GENRICH.out.peak_count_multiqc
+    ch_library_genrich_plot_homer_annotatepeaks_tsv  = MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_GENRICH.out.plot_homer_annotatepeaks_tsv
     
     ch_versions = ch_versions.mix(MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_GENRICH.out.versions)
     //}
@@ -847,7 +847,7 @@ workflow ATACSEQ {
 
             ch_library_genrich_frip_multiqc.collect{it[1]}.ifEmpty([]),
             ch_library_genrich_peak_count_multiqc.collect{it[1]}.ifEmpty([]),
-            ch_library_plot_homer_annotatepeaks_tsv.collect().ifEmpty([]),
+            ch_library_genrich_plot_homer_annotatepeaks_tsv.collect().ifEmpty([]),
 
             ch_markduplicates_replicate_stats.collect{it[1]}.ifEmpty([]),
             ch_markduplicates_replicate_flagstat.collect{it[1]}.ifEmpty([]),
