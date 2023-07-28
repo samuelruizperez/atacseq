@@ -69,6 +69,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
 
     // Create channels: [ meta, ip_bam, peaks ]
     // separate channel tuple of the fom: [ meta, lists_of_bams_in_condition, peaks ] into a tuple of the form: [ meta, individual_bam, peaks ]
+    // replace meta.id to be the prefix of each ip_bam until the first "."
     ch_bam
         .join(ch_genrich_peaks, by: [0])
         .map {
@@ -81,8 +82,13 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
                     [ meta, ip_bam, peaks ]
                 }
         }
+        .map {
+                meta, ip_bam, peaks ->
+                    def meta_clone = meta.clone()
+                    meta_clone.id = ip_bam.split("\\.")[0]
+                    [ meta_clone, ip_bam, peaks ]
+        }
         .set { ch_bam_peaks }
-
 
     //
     // Calculate FRiP score
