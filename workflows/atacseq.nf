@@ -543,7 +543,7 @@ workflow ATACSEQ {
             .map {
                 id, metas, bams, control_bams ->
                     if (bams.size() > 1) {
-                        return [ metas[0], bams, control_bams ]
+                        return [ metas[0], bams.flatten(), control_bams.flatten() ]
                     }
             }
             .set { ch_merged_library_bams }
