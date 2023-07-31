@@ -533,7 +533,7 @@ workflow ATACSEQ {
                     [ meta , bam, [] ]
             }
             .set { ch_bam_library_genrich }
-
+        }
 
 
     //
