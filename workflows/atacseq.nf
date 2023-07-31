@@ -542,14 +542,29 @@ workflow ATACSEQ {
         }
         .groupTuple()
         .map {
-            id, metas, bams, control_bams ->
-                if (bams.size() > 1 ) {
+            id, metas, bams ->
+                if (bams.size() > 1) {
                     return [ metas[0], bams ]
                 }
         }
         .set { ch_merged_library_bams }
 
-    
+//    ch_merged_library_c_bams
+//        .map {
+//            meta, bam, control_bam ->
+//                def meta_clone = meta.clone()
+//                meta_clone.id = meta_clone.id - ~/_REP\d+$/
+//                meta_clone.control = meta_clone.control ? meta_clone.control - ~/_REP\d+$/ : ""
+//                [ meta_clone.id, meta_clone, bam, control_bam ]
+//        }
+//        .groupTuple()
+//        .map {
+//            id, metas, bams, control_bams ->
+//                if (bams.size() > 1 || control_bams.size() > 1) {
+//                    return [ metas[0], bams, control_bams ]
+//                }
+//        }
+//        .set { ch_merged_library_bams }
 
     // if (params.peak_caller == 'genrich') {
     MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_GENRICH (
