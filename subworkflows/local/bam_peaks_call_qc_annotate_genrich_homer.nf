@@ -56,7 +56,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
     //
     GENRICH
         .out
-        .peaks //same var name
+        .peaks
         .filter { 
             meta, peaks ->
                 peaks.size() > 0
@@ -64,29 +64,13 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
         .set { ch_genrich_peaks }
 
 
-    // Create channels: [ meta, ip_bam_rep, peaks_rep_group ]
-    // give each ip_bam_rep the peaks_rep_group that matches their id
-
     // Create channels: [ meta, ip_bam, peaks ]
-    // separate channel tuple of the fom: [ meta, lists_of_bams_in_condition, peaks ] into a tuple of the form: [ meta, individual_bam, peaks ]
-    // replace meta.id to be the prefix of each ip_bam until the first "."
+
     ch_bam
         .join(ch_genrich_peaks, by: [0])
         .map {
-            meta, ip_bam, control_bam, peaks ->
-                [ meta, ip_bam, peaks ]
-        }
-        .flatMap { 
-            meta, ip_bams, peaks ->
-                ip_bams.collect { ip_bam ->
-                    [ meta, ip_bam, peaks ]
-                }
-        }
-        .map {
-                meta, ip_bam, peaks ->
-                    def meta_clone = meta.clone()
-                    meta_clone.id = ip_bam.getName().split("\\.")[0]
-                    [ meta_clone, ip_bam, peaks ]
+            meta, treatment_bam, control_bam, peaks ->
+                [ meta, treatment_bam, peaks ]
         }
         .set { ch_bam_peaks }
 
