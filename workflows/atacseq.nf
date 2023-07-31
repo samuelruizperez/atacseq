@@ -518,6 +518,7 @@ workflow ATACSEQ {
                     [ meta , bams[0], bams[1] ]
             }
             .collect()
+            .collate(3)
             .set { ch_merged_library_c_bams }
     } else {
         SAMTOOLS_SORT_FOR_GENRICH
@@ -528,6 +529,7 @@ workflow ATACSEQ {
                     [ meta , bam, [] ]
             }
             .collect()
+            .collate(3)
             .set { ch_merged_library_c_bams }
     }
 
