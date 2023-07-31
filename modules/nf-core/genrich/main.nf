@@ -16,7 +16,7 @@ process GENRICH {
     val   save_duplicates
 
     output:
-    tuple val(meta), path("*narrowPeak")                       , emit: peaks
+    tuple val(meta), path("*.narrowPeak")                       , emit: peaks
     tuple val(meta), path("*pvalues.bedGraph")  , optional:true, emit: bedgraph_pvalues
     tuple val(meta), path("*pileup.bedGraph")   , optional:true, emit: bedgraph_pileup
     tuple val(meta), path("*intervals.bed")     , optional:true, emit: bed_intervals
@@ -30,8 +30,7 @@ process GENRICH {
     def args       = task.ext.args ?: ''
     def prefix     = task.ext.prefix ?: "${meta.id}"
     def layout     = meta.single_end ? '-y' : ''
-    def treatment  = treatment_bam.size() > 1 ? "-t ${treatment_bam.sort().join(',')}" : "-t $treatment_bam"
-    def control    = control_bam ? (control_bam.size() > 1 ? "-c ${control_bam.sort().join(',')}" : "-c $control_bam") : ''
+    def control   = control_bam ? "-c $controlbam" : ''
    
     def blacklist  = blacklist_bed  ? "-E $blacklist_bed"             : ""
     def pvalues    = save_pvalues   ? "-f ${prefix}.pvalues.bedGraph" : ""
@@ -50,7 +49,7 @@ process GENRICH {
 
     """
     Genrich \\
-        $treatment \\
+        -t $treatment \\
         $args \\
         $layout \\
         $blacklist \\
