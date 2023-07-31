@@ -75,7 +75,7 @@ process GENRICH {
         }
         """
         Genrich \\
-            $treatment \\
+            -t ${treatment[0]} \\
             $args \\
             $blacklist \\
             -o ${prefix}.narrowPeak \\
@@ -83,7 +83,7 @@ process GENRICH {
             $pileup \\
             $bed \\
             $duplicates \\
-            $control
+            -c ${control[0]}
 
         cat <<-END_VERSIONS > versions.yml
         "${task.process}":
