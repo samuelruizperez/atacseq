@@ -520,7 +520,7 @@ workflow ATACSEQ {
             .out
             .bam
             .map {
-                meta, bams, bais ->
+                meta, bams ->
                     [ meta , bams[0], bams[1] ]
             }
             .set { ch_bam_library_genrich }
@@ -529,7 +529,7 @@ workflow ATACSEQ {
             .out
             .bam
             .map {
-                meta, bam, bai ->
+                meta, bam ->
                     [ meta , bam, [] ]
             }
             .set { ch_bam_library_genrich }
