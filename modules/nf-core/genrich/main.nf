@@ -16,12 +16,12 @@ process GENRICH {
     val   save_duplicates
 
     output:
-    tuple val(meta), path("*.narrowPeak")                    , emit: peaks
-    tuple val(meta), path("*pvalues.bedGraph"), optional:true, emit: bedgraph_pvalues
-    tuple val(meta), path("*pileup.bedGraph") , optional:true, emit: bedgraph_pileup
-    tuple val(meta), path("*intervals.bed")   , optional:true, emit: bed_intervals
-    tuple val(meta), path("*duplicates.txt")  , optional:true, emit: duplicates
-    path "versions.yml"                                      , emit: versions
+    tuple val(meta), path("*narrowPeak")                       , emit: peaks
+    tuple val(meta), path("*pvalues.bedGraph")  , optional:true, emit: bedgraph_pvalues
+    tuple val(meta), path("*pileup.bedGraph")   , optional:true, emit: bedgraph_pileup
+    tuple val(meta), path("*intervals.bed")     , optional:true, emit: bed_intervals
+    tuple val(meta), path("*duplicates.txt")    , optional:true, emit: duplicates
+    path "versions.yml"                                        , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -29,18 +29,16 @@ process GENRICH {
     script:
     def args       = task.ext.args ?: ''
     def prefix     = task.ext.prefix ?: "${meta.id}"
-
-    def treatment  = treatment_bam ? (treatment_bam.size() > 1 ? "-t ${treatment_bam.sort().join(',')}" : "-t $treatment_bam") : ''
-    def control    = control_bam.size() > 0 ? (control_bam.size() > 1 ? "-c ${control_bam.sort().join(',')}" : "-c $control_bam") : ''
+    def layout     = meta.single_end ? '-y' : ''
+    def treatment  = treatment_bam.size() > 1 ? "-t ${treatment_bam.sort().join(',')}" : "-t $treatment_bam"
+    def control    = control_bam ? (control_bam.size() > 1 ? "-c ${control_bam.sort().join(',')}" : "-c $control_bam") : ''
    
-    //def treatment  = treatment_bam.sort()
-    //def control    = controlbam ? "${'-c ' + control_bam.join(',')}" : ''
-    
     def blacklist  = blacklist_bed  ? "-E $blacklist_bed"             : ""
     def pvalues    = save_pvalues   ? "-f ${prefix}.pvalues.bedGraph" : ""
     def pileup     = save_pileup    ? "-k ${prefix}.pileup.bedGraph"  : ""
     def bed        = save_bed       ? "-b ${prefix}.intervals.bed"    : ""
     def duplicates = ""
+    
     if (save_duplicates) {
         if (args.contains('-r')) {
             duplicates = "-R ${prefix}.duplicates.txt"
@@ -50,14 +48,11 @@ process GENRICH {
         }
     }
 
-   
-    if (meta.single_end) {
-        args = args + " -y "
-    }
     """
     Genrich \\
         $treatment \\
         $args \\
+        $layout \\
         $blacklist \\
         -o ${prefix}.narrowPeak \\
         $pvalues \\
