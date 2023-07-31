@@ -495,24 +495,18 @@ workflow ATACSEQ {
 
     }
     
-
-
-
-    ch_bam_bai
-        .map {
-            meta, bam, bai ->
-                [ meta , bam ]
-        }
-        .set { ch_bam_library_s_genrich }
-
+    //
+    // SUBWORKFLOW: Call peaks with Genrich, annotate with HOMER and perform downstream QC
+    //
 
     //
-    // MODULE: Name sort BAM before calling peaks with Genrich
+    // Name sort BAM before calling peaks with Genrich
     //
     SAMTOOLS_SORT_FOR_GENRICH (
-        ch_bam_library_s_genrich
+        PICARD_MERGESAMFILES_LIBRARY.out.bam
     )
     ch_versions = ch_versions.mix(SAMTOOLS_SORT_FOR_GENRICH.out.versions.first())
+
 
     // Create channel: [ val(meta), bam, control_bam ]
     if (params.with_control) {
@@ -523,36 +517,39 @@ workflow ATACSEQ {
                 meta, bams ->
                     [ meta , bams[0], bams[1] ]
             }
-            .set { ch_bam_library_genrich }
+            .collect()
+            .set { ch_merged_library_c_bams }
     } else {
         SAMTOOLS_SORT_FOR_GENRICH
             .out
             .bam
             .map {
-                meta, bam ->
+                meta, bam  ->
                     [ meta , bam, [] ]
             }
-            .set { ch_bam_library_genrich }
-        }
+            .collect()
+            .set { ch_merged_library_c_bams }
+    }
 
 
-    //
-    // SUBWORKFLOW: Call peaks with Genrich, annotate with HOMER and perform downstream QC
-    //
 
     // if (params.peak_caller == 'genrich') {
     MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_GENRICH (
-        ch_bam_library_genrich,
+        ch_merged_library_bams,
         PREPARE_GENOME.out.fasta,
         PREPARE_GENOME.out.gtf,
+
         PREPARE_GENOME.out.blacklist_bed,
+
         ".mLb.clN_peaks.annotatePeaks.txt",
         ch_multiqc_merged_library_genrich_peak_count_header,
         ch_multiqc_merged_library_genrich_frip_score_header,
         ch_multiqc_merged_library_genrich_peak_annotation_header,
+        
         params.narrow_peak,
         params.skip_peak_annotation,
         params.skip_peak_qc,
+
         params.save_genrich_pvalues,
         params.save_genrich_pileup,
         params.save_genrich_bed,
