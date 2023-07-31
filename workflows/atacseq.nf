@@ -495,12 +495,9 @@ workflow ATACSEQ {
 
     }
     
-    //
-    // SUBWORKFLOW: Call peaks with Genrich, annotate with HOMER and perform downstream QC
-    //
 
     //
-    // Name sort BAM before calling peaks with Genrich
+    // MODULE: Name sort BAM before calling peaks with Genrich
     //
     SAMTOOLS_SORT_FOR_GENRICH (
         PICARD_MERGESAMFILES_LIBRARY.out.bam
@@ -529,41 +526,23 @@ workflow ATACSEQ {
             .set { ch_merged_library_c_bams }
     }
 
-
-//    ch_merged_library_c_bams
-//        .map {
-//            meta, bam, control_bam ->
-//                def meta_clone = meta.clone()
-//                meta_clone.id = meta_clone.id - ~/_REP\d+$/
-//                meta_clone.control = meta_clone.control ? meta_clone.control - ~/_REP\d+$/ : ""
-//                [ meta_clone.id, meta_clone, bam, control_bam ]
-//        }
-//        .groupTuple()
-//        .map {
-//            id, metas, bams, control_bams ->
-//                if (bams.size() > 1 || control_bams.size() > 1) {
-//                    return [ metas[0], bams, control_bams ]
-//                }
-//        }
-//        .set { ch_merged_library_bams }
+    //
+    // SUBWORKFLOW: Call peaks with Genrich, annotate with HOMER and perform downstream QC
+    //
 
     // if (params.peak_caller == 'genrich') {
     MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_GENRICH (
         ch_merged_library_c_bams,
         PREPARE_GENOME.out.fasta,
         PREPARE_GENOME.out.gtf,
-
         PREPARE_GENOME.out.blacklist_bed,
-
         ".mLb.clN_peaks.annotatePeaks.txt",
         ch_multiqc_merged_library_genrich_peak_count_header,
         ch_multiqc_merged_library_genrich_frip_score_header,
         ch_multiqc_merged_library_genrich_peak_annotation_header,
-        
         params.narrow_peak,
         params.skip_peak_annotation,
         params.skip_peak_qc,
-
         params.save_genrich_pvalues,
         params.save_genrich_pileup,
         params.save_genrich_bed,
