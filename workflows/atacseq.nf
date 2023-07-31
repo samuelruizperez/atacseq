@@ -545,6 +545,8 @@ workflow ATACSEQ {
             id, metas, bams, control_bams ->
                 if (bams.size() > 1 || control_bams.size() > 1) {
                     return [ metas[0], bams, control_bams.flatten().collect() ]
+                } else {
+                    return [ metas, bams, control_bams.flatten().collect() ]
                 }
         }
         .set { ch_merged_library_bams }
