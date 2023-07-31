@@ -496,11 +496,21 @@ workflow ATACSEQ {
     }
     
 
+
+
+    ch_bam_bai
+        .map {
+            meta, bam, bai ->
+                [ meta , bam ]
+        }
+        .set { ch_bam_library_s_genrich }
+
+
     //
     // MODULE: Name sort BAM before calling peaks with Genrich
     //
     SAMTOOLS_SORT_FOR_GENRICH (
-        ch_bam_bai
+        ch_bam_library_s_genrich
     )
     ch_versions = ch_versions.mix(SAMTOOLS_SORT_FOR_GENRICH.out.versions.first())
 
