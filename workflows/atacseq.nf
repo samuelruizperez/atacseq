@@ -530,27 +530,6 @@ workflow ATACSEQ {
     }
 
 
-    // Create channel: [ val(meta), bams_of_same_condition (id - "_REP.*"), control_bams_of_same_condition (id - "_REP.*"")]
-  
-    ch_merged_library_c_bams
-        .map {
-            meta, bam, control_bam ->
-                def meta_clone = meta.clone()
-                meta_clone.id = meta_clone.id - ~/_REP\d+$/
-                meta_clone.control = meta_clone.control ? meta_clone.control - ~/_REP\d+$/ : ""
-                [ meta_clone.id, meta_clone, bam, control_bam ]
-        }
-        .groupTuple()
-        .map {
-            id, metas, bams, control_bams ->
-                if (bams.size() > 1 || control_bams.size() > 1) {
-                    return [ metas[0], bams.flatten(), control_bams.flatten() ]
-                } else {
-                    return [ metas, bams.flatten(), control_bams.flatten() ]
-                }
-        }
-        .set { ch_merged_library_bams }
-
 //    ch_merged_library_c_bams
 //        .map {
 //            meta, bam, control_bam ->
@@ -570,7 +549,7 @@ workflow ATACSEQ {
 
     // if (params.peak_caller == 'genrich') {
     MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_GENRICH (
-        ch_merged_library_bams,
+        ch_merged_library_c_bams,
         PREPARE_GENOME.out.fasta,
         PREPARE_GENOME.out.gtf,
 
