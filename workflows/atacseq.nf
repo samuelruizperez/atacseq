@@ -555,6 +555,7 @@ workflow ATACSEQ {
     ch_versions = ch_versions.mix(MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_GENRICH.out.versions)
 
 
+
     // Create channels: [ meta, bam, bai, peak_file ]
     MERGED_LIBRARY_MARKDUPLICATES_PICARD
         .out
