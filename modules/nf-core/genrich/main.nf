@@ -45,7 +45,7 @@ process GENRICH {
         }
     }
 
-    if (bam_treatmentfiles.size() > 1 || control_bams.size() > 1) {
+    if (treatment.size() > 1 || control.size() > 1) {
 
         if (meta.single_end) {
             args = args + " -y "
