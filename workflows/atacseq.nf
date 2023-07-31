@@ -530,24 +530,18 @@ workflow ATACSEQ {
     }
 
 
-
-    // if (params.peak_caller == 'genrich') {
     MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_GENRICH (
         ch_merged_library_c_bams,
         PREPARE_GENOME.out.fasta,
         PREPARE_GENOME.out.gtf,
-
         PREPARE_GENOME.out.blacklist_bed,
-
         ".mLb.clN_peaks.annotatePeaks.txt",
         ch_multiqc_merged_library_genrich_peak_count_header,
         ch_multiqc_merged_library_genrich_frip_score_header,
         ch_multiqc_merged_library_genrich_peak_annotation_header,
-        
         params.narrow_peak,
         params.skip_peak_annotation,
         params.skip_peak_qc,
-
         params.save_genrich_pvalues,
         params.save_genrich_pileup,
         params.save_genrich_bed,
@@ -559,9 +553,6 @@ workflow ATACSEQ {
     ch_library_genrich_plot_homer_annotatepeaks_tsv  = MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_GENRICH.out.plot_homer_annotatepeaks_tsv
     
     ch_versions = ch_versions.mix(MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_GENRICH.out.versions)
-    //}
-
-
 
 
     // Create channels: [ meta, bam, bai, peak_file ]

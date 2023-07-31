@@ -30,7 +30,7 @@ process GENRICH {
     def args       = task.ext.args ?: ''
     def prefix     = task.ext.prefix ?: "${meta.id}"
     def layout     = meta.single_end ? '-y' : ''
-    def control   = control_bam ? "-c $controlbam" : ''
+    def control   = control_bam ? "-c $control_bam" : ''
    
     def blacklist  = blacklist_bed  ? "-E $blacklist_bed"             : ""
     def pvalues    = save_pvalues   ? "-f ${prefix}.pvalues.bedGraph" : ""
@@ -49,7 +49,7 @@ process GENRICH {
 
     """
     Genrich \\
-        -t $treatment \\
+        -t $treatment_bam \\
         $args \\
         $layout \\
         $blacklist \\
