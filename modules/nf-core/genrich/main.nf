@@ -29,7 +29,7 @@ process GENRICH {
     script:
     def args       = task.ext.args ?: ''
     def prefix     = task.ext.prefix ?: "${meta.id}"
-    def treatment  = treatment_bam ? (treatment_bam.size() > 1 ? "-c ${treatment_bam.sort().join(',')}" : "-c $treatment_bam") : ''
+    def treatment  = treatment_bam ? (treatment_bam.size() > 1 ? "-t ${treatment_bam.sort().join(',')}" : "-t $treatment_bam") : ''
     def control    = control_bam ? (control_bam.size() > 1 ? "-c ${control_bam.sort().join(',')}" : "-c $control_bam") : ''
     def blacklist  = blacklist_bed  ? "-E $blacklist_bed"             : ""
     def pvalues    = save_pvalues   ? "-f ${prefix}.pvalues.bedGraph" : ""
