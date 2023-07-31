@@ -542,6 +542,7 @@ workflow ATACSEQ {
         .map {
            id, meta_clone, bams, control_bams ->
                 [ meta_clone, bams.flatten(), control_bams.flatten() ]
+        }
         .map {
             metas, bams, control_bams ->
                 if (bams.size() > 1) {
