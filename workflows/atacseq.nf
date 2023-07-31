@@ -535,7 +535,7 @@ workflow ATACSEQ {
 
     // if (params.peak_caller == 'genrich') {
     MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_GENRICH (
-        ch_merged_library_bams,
+        ch_merged_library_c_bams,
         PREPARE_GENOME.out.fasta,
         PREPARE_GENOME.out.gtf,
 
