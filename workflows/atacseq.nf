@@ -500,7 +500,7 @@ workflow ATACSEQ {
     // MODULE: Name sort BAM before calling peaks with Genrich
     //
     SAMTOOLS_SORT_FOR_GENRICH (
-        PICARD_MERGESAMFILES_LIBRARY.out.bam
+        ch_bam_library
     )
     ch_versions = ch_versions.mix(SAMTOOLS_SORT_FOR_GENRICH.out.versions.first())
 
@@ -532,7 +532,7 @@ workflow ATACSEQ {
 
     // if (params.peak_caller == 'genrich') {
     MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_GENRICH (
-        ch_bam_library,
+        SAMTOOLS_SORT_FOR_GENRICH.out.bam,
         PREPARE_GENOME.out.fasta,
         PREPARE_GENOME.out.gtf,
         PREPARE_GENOME.out.blacklist_bed,
