@@ -82,7 +82,7 @@ process GENRICH {
             $pileup \\
             $bed \\
             $duplicates \\
-            -c ${control[0]}
+            ${'-c ' + control[0]}
 
         cat <<-END_VERSIONS > versions.yml
         "${task.process}":
