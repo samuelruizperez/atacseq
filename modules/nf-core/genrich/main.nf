@@ -54,14 +54,13 @@ process GENRICH {
         Genrich \\
             ${'-t ' + treatment.join(',')} \\
             $args \\
-            ${'-t ' + control.join(',')} \\
             $blacklist \\
             -o ${prefix}.narrowPeak \\
             $pvalues \\
             $pileup \\
             $bed \\
             $duplicates \\
-            $control
+            ${'-c ' + control.join(',')}
 
         cat <<-END_VERSIONS > versions.yml
         "${task.process}":
