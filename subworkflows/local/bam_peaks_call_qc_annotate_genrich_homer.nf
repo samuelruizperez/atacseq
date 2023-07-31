@@ -14,7 +14,7 @@ include { PLOT_HOMER_ANNOTATEPEAKS } from '../../modules/local/plot_homer_annota
 
 workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
     take:
-    ch_bam                            // channel: [ val(meta), [ path(bams) ] ]
+    ch_bam                            // channel: [ val(meta), [ treatment_bam ], [ control_bam ] ]
     ch_fasta                          // channel: [ fasta ]
     ch_gtf                            // channel: [ gtf ]
     ch_blacklist_regions              // channel: [ bed ]

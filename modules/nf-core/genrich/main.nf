@@ -16,7 +16,7 @@ process GENRICH {
     val   save_duplicates
 
     output:
-    tuple val(meta), path("*narrowPeak")                     , emit: peaks
+    tuple val(meta), path("*.narrowPeak")                    , emit: peaks
     tuple val(meta), path("*pvalues.bedGraph"), optional:true, emit: bedgraph_pvalues
     tuple val(meta), path("*pileup.bedGraph") , optional:true, emit: bedgraph_pileup
     tuple val(meta), path("*intervals.bed")   , optional:true, emit: bed_intervals
