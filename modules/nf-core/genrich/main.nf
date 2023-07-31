@@ -50,50 +50,26 @@ process GENRICH {
         }
     }
 
-    if (treatment.size() > 1 || control.size() > 1) {
-
-        if (meta.single_end) {
-            args = args + " -y "
-        }
-        """
-        Genrich \\
-            ${'-t ' + treatment.join(',')} \\
-            $args \\
-            $blacklist \\
-            -o ${prefix}.narrowPeak \\
-            $pvalues \\
-            $pileup \\
-            $bed \\
-            $duplicates \\
-            ${'-c ' + control.join(',')}
-
-        cat <<-END_VERSIONS > versions.yml
-        "${task.process}":
-            genrich: \$(echo \$(Genrich --version 2>&1) | sed 's/^Genrich, version //; s/ .*\$//')
-        END_VERSIONS
-        """
-    } else {
-
-        if (meta.single_end) {
-            args = args + " -y "
-        }
-        """
-        Genrich \\
-            -t ${treatment[0]} \\
-            $args \\
-            $blacklist \\
-            -o ${prefix}.narrowPeak \\
-            $pvalues \\
-            $pileup \\
-            $bed \\
-            $duplicates \\
-            -c ${control[0]}
-
-        cat <<-END_VERSIONS > versions.yml
-        "${task.process}":
-            genrich: \$(echo \$(Genrich --version 2>&1) | sed 's/^Genrich, version //; s/ .*\$//')
-        END_VERSIONS
-        """
+   
+    if (meta.single_end) {
+        args = args + " -y "
     }
+    """
+    Genrich \\
+        $treatment \\
+        $args \\
+        $blacklist \\
+        -o ${prefix}.narrowPeak \\
+        $pvalues \\
+        $pileup \\
+        $bed \\
+        $duplicates \\
+        $control
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        genrich: \$(echo \$(Genrich --version 2>&1) | sed 's/^Genrich, version //; s/ .*\$//')
+    END_VERSIONS
+    """
 
 }
