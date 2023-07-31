@@ -538,13 +538,13 @@ workflow ATACSEQ {
                 def meta_clone = meta.clone()
                 meta_clone.id = meta_clone.id - ~/_REP\d+$/
                 meta_clone.control = meta_clone.control ? meta_clone.control - ~/_REP\d+$/ : ""
-                [ meta_clone.id, meta_clone, bam ]
+                [ meta_clone.id, meta_clone, bam, control_bam ]
         }
         .groupTuple()
         .map {
-            id, metas, bams ->
-                if (bams.size() > 1) {
-                    return [ metas[0], bams ]
+            id, metas, bams, control_bams ->
+                if (bams.size() > 1 || control_bams.size() > 1) {
+                    return [ metas[0], bams, control_bams ]
                 }
         }
         .set { ch_merged_library_bams }
