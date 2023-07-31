@@ -500,10 +500,9 @@ workflow ATACSEQ {
     // MODULE: Name sort BAM before calling peaks with Genrich
     //
     SAMTOOLS_SORT_FOR_GENRICH (
-        ch_bam_library
+        ch_bam_bai
     )
     ch_versions = ch_versions.mix(SAMTOOLS_SORT_FOR_GENRICH.out.versions.first())
-
 
     // Create channel: [ val(meta), bam, control_bam ]
     if (params.with_control) {
@@ -511,20 +510,21 @@ workflow ATACSEQ {
             .out
             .bam
             .map {
-                meta, bams ->
+                meta, bams, bais ->
                     [ meta , bams[0], bams[1] ]
             }
-            .set { ch_merged_library_c_bams }
+            .set { ch_bam_library_genrich }
     } else {
         SAMTOOLS_SORT_FOR_GENRICH
             .out
             .bam
             .map {
-                meta, bam  ->
+                meta, bam, bai ->
                     [ meta , bam, [] ]
             }
-            .set { ch_merged_library_c_bams }
-    }
+            .set { ch_bam_library_genrich }
+
+
 
     //
     // SUBWORKFLOW: Call peaks with Genrich, annotate with HOMER and perform downstream QC
@@ -532,7 +532,7 @@ workflow ATACSEQ {
 
     // if (params.peak_caller == 'genrich') {
     MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_GENRICH (
-        SAMTOOLS_SORT_FOR_GENRICH.out.bam,
+        ch_bam_library_genrich,
         PREPARE_GENOME.out.fasta,
         PREPARE_GENOME.out.gtf,
         PREPARE_GENOME.out.blacklist_bed,
