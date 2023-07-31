@@ -529,37 +529,26 @@ workflow ATACSEQ {
             .set { ch_merged_library_c_bams }
     }
 
-
-    ch_merged_library_c_bams
-            .map {
-                meta, bam, control_bam ->
-                    def meta_clone = meta.clone()
-                    meta_clone.id = meta_clone.id - ~/_REP\d+$/
-                    [ meta_clone, bam, control_bam ]
-            }
-            .groupTuple(by: [0])
-            .map {
-                meta, bams, control_bams ->
-                    [ meta, bams.flatten(), control_bams.flatten() ]
-            }
-            .set { ch_merged_library_bams }
-
-
     // Create channel: [ val(meta), bams_of_same_condition (id - "_REP.*"), control_bams_of_same_condition (id - "_REP.*"")]
   
- //   ch_merged_library_c_bams
- //       .map {
- //           meta, bam, control_bam ->
- //               def meta_clone = meta.clone()
- //               meta_clone.id = meta_clone.id - ~/_REP\d+$/
- //              [ meta_clone.id, meta_clone, bam, control_bam ]
- //       }
- //       .groupTuple(by: [0])
- //       .map {
- //          id, meta, bams, control_bams ->
- //               [ meta[0], bams.flatten(), control_bams.flatten() ]
- //       }
- //       .set { ch_merged_library_bams }
+    ch_merged_library_c_bams
+        .map {
+            meta, bam, control_bam ->
+                def meta_clone = meta.clone()
+                meta_clone.id = meta_clone.id - ~/_REP\d+$/
+                [ meta_clone.id, meta_clone, bam, control_bam ]
+        }
+        .groupTuple(by: [0])
+        .map {
+           id, meta_clone, bams, control_bams ->
+                [ meta_clone, bams.flatten(), control_bams.flatten() ]
+        .map {
+            metas, bams, control_bams ->
+                if (bams.size() > 1) {
+                    return [ metas[0], bams, control_bams ]
+                }
+        }
+        .set { ch_merged_library_bams }
 
 
     
