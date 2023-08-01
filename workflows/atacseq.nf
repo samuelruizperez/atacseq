@@ -508,28 +508,45 @@ workflow ATACSEQ {
     ch_versions = ch_versions.mix(SAMTOOLS_SORT_FOR_GENRICH.out.versions.first())
 
 
-    // Create channel: [ val(meta), bam, control_bam ]
+    // Create channels: [ meta, [bam], [bai] ] or [ meta, [ bam, control_bam ] [ bai, control_bai ] ]
     if (params.with_control) {
         SAMTOOLS_SORT_FOR_GENRICH
             .out
             .bam
+            .map {
+                meta, bam ->
+                    meta.control ? null : [ meta.id, [ bam ] ]
+            }
+            .set { ch_control_bam }
+
+        ch_bam_bai
+            .map {
+                meta, bam ->
+                    meta.control ? [ meta.control, meta, [ bam ] ] : null
+            }
+            .combine(ch_control_bam, by: 0)
+            .map { it -> [ it[1] , it[2] + it[4] ] }
+            .set { ch_bam }
+    }
+
+    // Create channel: [ val(meta), bam, control_bam ]
+    if (params.with_control) {
+        ch_bam
             .map {
                 meta, bams ->
                     [ meta , bams[0], bams[1] ]
             }
             .set { ch_merged_library_c_bams }
     } else {
-        SAMTOOLS_SORT_FOR_GENRICH
-            .out
-            .bam
+        ch_bam
             .map {
-                meta, bam  ->
+                meta, bam ->
                     [ meta , bam, [] ]
             }
             .set { ch_merged_library_c_bams }
     }
 
-
+    
     MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_GENRICH (
         ch_merged_library_c_bams,
         PREPARE_GENOME.out.fasta,
