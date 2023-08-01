@@ -43,13 +43,17 @@ ch_bamtools_filter_pe_config = file(params.bamtools_filter_pe_config)
 
 // Header files for MultiQC
 ch_multiqc_merged_library_peak_count_header        = file("$projectDir/assets/multiqc/merged_library_peak_count_header.txt", checkIfExists: true)
-ch_multiqc_merged_library_genrich_peak_count_header        = file("$projectDir/assets/multiqc/merged_library_genrich_peak_count_header.txt", checkIfExists: true)
+ch_multiqc_merged_library_sep_genrich_peak_count_header        = file("$projectDir/assets/multiqc/merged_library_sep_genrich_peak_count_header.txt", checkIfExists: true)
+ch_multiqc_merged_library_joint_genrich_peak_count_header        = file("$projectDir/assets/multiqc/merged_library_joint_genrich_peak_count_header.txt", checkIfExists: true)
+
 
 ch_multiqc_merged_library_frip_score_header        = file("$projectDir/assets/multiqc/merged_library_frip_score_header.txt", checkIfExists: true)
-ch_multiqc_merged_library_genrich_frip_score_header        = file("$projectDir/assets/multiqc/merged_library_genrich_frip_score_header.txt", checkIfExists: true)
+ch_multiqc_merged_library_sep_genrich_frip_score_header        = file("$projectDir/assets/multiqc/merged_library_sep_genrich_frip_score_header.txt", checkIfExists: true)
+ch_multiqc_merged_library_joint_genrich_frip_score_header        = file("$projectDir/assets/multiqc/merged_library_joint_genrich_frip_score_header.txt", checkIfExists: true)
 
 ch_multiqc_merged_library_peak_annotation_header   = file("$projectDir/assets/multiqc/merged_library_peak_annotation_header.txt", checkIfExists: true)
-ch_multiqc_merged_library_genrich_peak_annotation_header   = file("$projectDir/assets/multiqc/merged_library_genrich_peak_annotation_header.txt", checkIfExists: true)
+ch_multiqc_merged_library_sep_genrich_peak_annotation_header   = file("$projectDir/assets/multiqc/merged_library_sep_genrich_peak_annotation_header.txt", checkIfExists: true)
+ch_multiqc_merged_library_joint_genrich_peak_annotation_header   = file("$projectDir/assets/multiqc/merged_library_joint_genrich_peak_annotation_header.txt", checkIfExists: true)
 
 
 ch_multiqc_merged_library_deseq2_pca_header        = file("$projectDir/assets/multiqc/merged_library_deseq2_pca_header.txt", checkIfExists: true)
@@ -529,28 +533,28 @@ workflow ATACSEQ {
                 meta, bams ->
                     [ meta , bams[0], bams[1] ]
             }
-            .set { ch_merged_library_c_bams }
+            .set { ch_merged_library_bams_sep }
     } else {
         ch_bam
             .map {
                 meta, bam ->
                     [ meta , bam, [] ]
             }
-            .set { ch_merged_library_c_bams }
+            .set { ch_merged_library_bams_sep }
     }
 
     //
     // SUBWORKFLOW: Call peaks with Genrich, annotate with HOMER and perform downstream QC
     //
     MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH (
-        ch_merged_library_c_bams,
+        ch_merged_library_bams_sep,
         PREPARE_GENOME.out.fasta,
         PREPARE_GENOME.out.gtf,
         PREPARE_GENOME.out.blacklist_bed.first(),
         ".mLb.genrich.peaks.annotatePeaks.txt",
-        ch_multiqc_merged_library_genrich_peak_count_header,
-        ch_multiqc_merged_library_genrich_frip_score_header,
-        ch_multiqc_merged_library_genrich_peak_annotation_header,
+        ch_multiqc_merged_library_sep_genrich_peak_count_header,
+        ch_multiqc_merged_library_sep_genrich_frip_score_header,
+        ch_multiqc_merged_library_sep_genrich_peak_annotation_header,
         params.narrow_peak,
         params.skip_peak_annotation,
         params.skip_peak_qc,
@@ -559,10 +563,10 @@ workflow ATACSEQ {
         params.save_genrich_bed,
         params.save_genrich_duplicates
     )
-    ch_library_genrich_peaks                         = MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH.out.peaks
-    ch_library_genrich_frip_multiqc                  = MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH.out.frip_multiqc
-    ch_library_genrich_peak_count_multiqc            = MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH.out.peak_count_multiqc
-    ch_library_genrich_plot_homer_annotatepeaks_tsv  = MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH.out.plot_homer_annotatepeaks_tsv
+    ch_library_genrich_sep_peaks                         = MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH.out.peaks
+    ch_library_genrich_sep_frip_multiqc                  = MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH.out.frip_multiqc
+    ch_library_genrich_sep_peak_count_multiqc            = MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH.out.peak_count_multiqc
+    ch_library_genrich_sep_plot_homer_annotatepeaks_tsv  = MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH.out.plot_homer_annotatepeaks_tsv
     
     ch_versions = ch_versions.mix(MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH.out.versions)
 
@@ -748,6 +752,48 @@ workflow ATACSEQ {
         }
     }
 
+    // Check if we have multiple replicates (now for Genrich)
+    ch_merged_library_bams_sep
+        .map {
+            meta, bam, control_bam ->
+                def meta_clone = meta.clone()
+                meta_clone.id = meta_clone.id - ~/_REP\d+$/
+                meta_clone.control = meta_clone.control ? meta_clone.control - ~/_REP\d+$/ : ""
+                [ meta_clone.id, meta_clone, bam, control_bam ]
+        }
+        .groupTuple()
+        .map {
+            id, metas, bams, control_bams ->
+                [ metas[0], bams, control_bams ]
+        }
+        .set { ch_merged_library_bams_joint }
+
+    //
+    // SUBWORKFLOW: Call peaks with Genrich, annotate with HOMER and perform downstream QC
+    //
+    MERGED_LIBRARY_JOINT_CALL_ANNOTATE_PEAKS_GENRICH (
+        ch_merged_library_bams_joint,
+        PREPARE_GENOME.out.fasta,
+        PREPARE_GENOME.out.gtf,
+        PREPARE_GENOME.out.blacklist_bed.first(),
+        ".mLb.genrich.peaks.annotatePeaks.txt",
+        ch_multiqc_merged_library_joint_genrich_peak_count_header,
+        ch_multiqc_merged_library_joint_genrich_frip_score_header,
+        ch_multiqc_merged_library_joint_genrich_peak_annotation_header,
+        params.narrow_peak,
+        params.skip_peak_annotation,
+        params.skip_peak_qc,
+        params.save_genrich_pvalues,
+        params.save_genrich_pileup,
+        params.save_genrich_bed,
+        params.save_genrich_duplicates
+    )
+    ch_library_genrich_joint_peaks                         = MERGED_LIBRARY_JOINT_CALL_ANNOTATE_PEAKS_GENRICH.out.peaks
+    ch_library_genrich_joint_frip_multiqc                  = MERGED_LIBRARY_JOINT_CALL_ANNOTATE_PEAKS_GENRICH.out.frip_multiqc
+    ch_library_genrich_joint_peak_count_multiqc            = MERGED_LIBRARY_JOINT_CALL_ANNOTATE_PEAKS_GENRICH.out.peak_count_multiqc
+    ch_library_genrich_joint_plot_homer_annotatepeaks_tsv  = MERGED_LIBRARY_JOINT_CALL_ANNOTATE_PEAKS_GENRICH.out.plot_homer_annotatepeaks_tsv
+    
+    ch_versions = ch_versions.mix(MERGED_LIBRARY_JOINT_CALL_ANNOTATE_PEAKS_GENRICH.out.versions)
 
     //
     // MODULE: Create IGV session
@@ -833,9 +879,9 @@ workflow ATACSEQ {
             ch_library_plot_homer_annotatepeaks_tsv.collect().ifEmpty([]),
             ch_featurecounts_library_multiqc.collect{it[1]}.ifEmpty([]),
 
-            ch_library_genrich_frip_multiqc.collect{it[1]}.ifEmpty([]),
-            ch_library_genrich_peak_count_multiqc.collect{it[1]}.ifEmpty([]),
-            ch_library_genrich_plot_homer_annotatepeaks_tsv.collect().ifEmpty([]),
+            ch_library_genrich_sep_frip_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_library_genrich_sep_peak_count_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_library_genrich_sep_plot_homer_annotatepeaks_tsv.collect().ifEmpty([]),
 
             ch_markduplicates_replicate_stats.collect{it[1]}.ifEmpty([]),
             ch_markduplicates_replicate_flagstat.collect{it[1]}.ifEmpty([]),
@@ -850,7 +896,11 @@ workflow ATACSEQ {
             ch_deseq2_pca_library_multiqc.collect().ifEmpty([]),
             ch_deseq2_clustering_library_multiqc.collect().ifEmpty([]),
             ch_deseq2_pca_replicate_multiqc.collect().ifEmpty([]),
-            ch_deseq2_clustering_replicate_multiqc.collect().ifEmpty([])
+            ch_deseq2_clustering_replicate_multiqc.collect().ifEmpty([]),
+
+            ch_library_genrich_joint_frip_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_library_genrich_joint_peak_count_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_library_genrich_joint_plot_homer_annotatepeaks_tsv.collect().ifEmpty([])
         )
         multiqc_report = MULTIQC.out.report.toList()
     }
