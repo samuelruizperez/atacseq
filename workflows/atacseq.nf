@@ -764,7 +764,7 @@ workflow ATACSEQ {
         .groupTuple()
         .map {
             id, metas, bams, control_bams ->
-                [ metas[0], bams.faltten(), control_bams.flatten() ]
+                [ metas[0], bams.flatten(), control_bams.flatten() ]
         }
         .set { ch_merged_library_bams_joint }
 
