@@ -56,7 +56,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
     //
     GENRICH
         .out
-        .peaks
+        .peak
         .filter { 
             meta, peaks ->
                 peaks.size() > 0

@@ -413,13 +413,13 @@
                 },
                 "genrich_qvalue": {
                     "type": "number",
-                    "default": 0.01,
+                    "default": 0.1,
                     "description": "Minimum q-value cutoff for peak detection.",
                     "fa_icon": "fas fa-sort-amount-down"
                 },
                 "genrich_pvalue": {
                     "type": "number",
-                    "default": 0.01,
+                    "default": 0.1,
                     "description": "Minimum p-value cutoff for peak detection.",
                     "fa_icon": "fas fa-sort-amount-down"
                 }
