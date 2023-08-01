@@ -74,16 +74,24 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
         }
         .set { ch_bam_peaks }
 
+    // split ch_bam_peaks by treatment_bam
+
+    ch_bam_peaks
+        .map { meta, treatment_bam, peaks ->
+            treatment_bam.collect { [ meta, it, peaks ] }
+        }
+        .set { ch_bam_peaks_treatment_bam }
+
     //
     // Calculate FRiP score
     //
     FRIP_SCORE (
-        ch_bam_peaks
+        ch_bam_peaks_treatment_bam
     )
     ch_versions = ch_versions.mix(FRIP_SCORE.out.versions.first())
 
     // Create channels: [ meta, peaks, frip ]
-    ch_bam_peaks
+    ch_bam_peaks_treatment_bam
         .join(FRIP_SCORE.out.txt, by: [0])
         .map {
             meta, ip_bam, peaks, frip ->
