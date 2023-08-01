@@ -49,7 +49,7 @@ process GENRICH {
 
     """
     Genrich \\
-        -t $treatment \\
+        $treatment \\
         $args \\
         $layout \\
         $blacklist \\
