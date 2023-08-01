@@ -505,21 +505,20 @@ workflow ATACSEQ {
     SAMTOOLS_SORT_FOR_GENRICH (
         PICARD_MERGESAMFILES_LIBRARY.out.bam
     )
+    ch_bam = SAMTOOLS_SORT_FOR_GENRICH.out.bam
     ch_versions = ch_versions.mix(SAMTOOLS_SORT_FOR_GENRICH.out.versions.first())
 
 
     // Create channels: [ meta, [bam], [bai] ] or [ meta, [ bam, control_bam ] [ bai, control_bai ] ]
     if (params.with_control) {
-        SAMTOOLS_SORT_FOR_GENRICH
-            .out
-            .bam
+        ch_bam
             .map {
                 meta, bam ->
                     meta.control ? null : [ meta.id, [ bam ] ]
             }
             .set { ch_control_bam }
 
-        ch_bam_bai
+        ch_bam
             .map {
                 meta, bam ->
                     meta.control ? [ meta.control, meta, [ bam ] ] : null
