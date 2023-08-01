@@ -86,8 +86,8 @@ include { BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER as MERGED_REPLICATE_CALL_ANNOTA
 include { BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 as MERGED_LIBRARY_CONSENSUS_PEAKS   } from '../subworkflows/local/bed_consensus_quantify_qc_bedtools_featurecounts_deseq2.nf'
 include { BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 as MERGED_REPLICATE_CONSENSUS_PEAKS } from '../subworkflows/local/bed_consensus_quantify_qc_bedtools_featurecounts_deseq2.nf'
 
-include { BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER as MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_GENRICH      } from '../subworkflows/local/bam_peaks_call_qc_annotate_genrich_homer.nf'
-// include { BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER as MERGED_REPLICATE_CALL_ANNOTATE_PEAKS_GENRICH    } from '../subworkflows/local/bam_peaks_call_qc_annotate_genrich_homer.nf'
+include { BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER as MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH      } from '../subworkflows/local/bam_peaks_call_qc_annotate_genrich_homer.nf'
+include { BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER as MERGED_LIBRARY_JOINT_CALL_ANNOTATE_PEAKS_GENRICH    } from '../subworkflows/local/bam_peaks_call_qc_annotate_genrich_homer.nf'
 
 
 
@@ -466,7 +466,6 @@ workflow ATACSEQ {
         
         ch_versions = ch_versions.mix(MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_MACS2.out.versions)
     
-    
         //
         // SUBWORKFLOW: Consensus peaks analysis
         //
@@ -496,11 +495,7 @@ workflow ATACSEQ {
     }
     
     //
-    // SUBWORKFLOW: Call peaks with Genrich, annotate with HOMER and perform downstream QC
-    //
-
-    //
-    // Name sort BAM before calling peaks with Genrich
+    // MODULE: Sort BAMs by name before calling peaks with Genrich
     //
     SAMTOOLS_SORT_FOR_GENRICH (
         PICARD_MERGESAMFILES_LIBRARY.out.bam
@@ -508,8 +503,7 @@ workflow ATACSEQ {
     ch_bam = SAMTOOLS_SORT_FOR_GENRICH.out.bam
     ch_versions = ch_versions.mix(SAMTOOLS_SORT_FOR_GENRICH.out.versions.first())
 
-
-    // Create channels: [ meta, [bam] ] or [ meta, [ bam, control_bam ] ]
+    // Create channels: [ meta, [bam] ] or [ meta, [ bam, control_bam ] ] (now for Genrich)
     if (params.with_control) {
         ch_bam
             .map {
@@ -528,7 +522,7 @@ workflow ATACSEQ {
             .set { ch_bam }
     }
 
-    // Create channel: [ val(meta), bam, control_bam ]
+    // Create channel: [ val(meta), bam, control_bam ] (now for Genrich)
     if (params.with_control) {
         ch_bam
             .map {
@@ -545,8 +539,10 @@ workflow ATACSEQ {
             .set { ch_merged_library_c_bams }
     }
 
-    
-    MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_GENRICH (
+    //
+    // SUBWORKFLOW: Call peaks with Genrich, annotate with HOMER and perform downstream QC
+    //
+    MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH (
         ch_merged_library_c_bams,
         PREPARE_GENOME.out.fasta,
         PREPARE_GENOME.out.gtf,
@@ -563,14 +559,12 @@ workflow ATACSEQ {
         params.save_genrich_bed,
         params.save_genrich_duplicates
     )
-    ch_library_genrich_peaks                         = MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_GENRICH.out.peaks
-    ch_library_genrich_frip_multiqc                  = MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_GENRICH.out.frip_multiqc
-    ch_library_genrich_peak_count_multiqc            = MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_GENRICH.out.peak_count_multiqc
-    ch_library_genrich_plot_homer_annotatepeaks_tsv  = MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_GENRICH.out.plot_homer_annotatepeaks_tsv
+    ch_library_genrich_peaks                         = MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH.out.peaks
+    ch_library_genrich_frip_multiqc                  = MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH.out.frip_multiqc
+    ch_library_genrich_peak_count_multiqc            = MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH.out.peak_count_multiqc
+    ch_library_genrich_plot_homer_annotatepeaks_tsv  = MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH.out.plot_homer_annotatepeaks_tsv
     
-    ch_versions = ch_versions.mix(MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_GENRICH.out.versions)
-
-
+    ch_versions = ch_versions.mix(MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH.out.versions)
 
     // Create channels: [ meta, bam, bai, peak_file ]
     MERGED_LIBRARY_MARKDUPLICATES_PICARD
@@ -753,6 +747,7 @@ workflow ATACSEQ {
             ch_versions = ch_versions.mix(MERGED_REPLICATE_CONSENSUS_PEAKS.out.versions)
         }
     }
+
 
     //
     // MODULE: Create IGV session
