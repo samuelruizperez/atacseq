@@ -143,6 +143,7 @@ workflow PREPARE_GENOME {
     // Prepare genome intervals for filtering by removing regions in blacklist file
     //
     ch_genome_filtered_bed = Channel.empty()
+    ch_genome_blacklist_bed = Channel.empty()
     GENOME_BLACKLIST_REGIONS (
         ch_chrom_sizes,
         ch_blacklist.ifEmpty([]),

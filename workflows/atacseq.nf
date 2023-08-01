@@ -509,7 +509,7 @@ workflow ATACSEQ {
     ch_versions = ch_versions.mix(SAMTOOLS_SORT_FOR_GENRICH.out.versions.first())
 
 
-    // Create channels: [ meta, [bam], [bai] ] or [ meta, [ bam, control_bam ] [ bai, control_bai ] ]
+    // Create channels: [ meta, [bam] ] or [ meta, [ bam, control_bam ] ]
     if (params.with_control) {
         ch_bam
             .map {
@@ -550,8 +550,8 @@ workflow ATACSEQ {
         ch_merged_library_c_bams,
         PREPARE_GENOME.out.fasta,
         PREPARE_GENOME.out.gtf,
-        PREPARE_GENOME.out.blacklist_bed,
-        ".mLb_peaks.annotatePeaks.txt",
+        PREPARE_GENOME.out.blacklist_bed.first(),
+        ".mLb.genrich.peaks.annotatePeaks.txt",
         ch_multiqc_merged_library_genrich_peak_count_header,
         ch_multiqc_merged_library_genrich_frip_score_header,
         ch_multiqc_merged_library_genrich_peak_annotation_header,
