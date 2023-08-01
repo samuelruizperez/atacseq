@@ -77,9 +77,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
     // split ch_bam_peaks by treatment_bam
 
     ch_bam_peaks
-        .map { meta, treatment_bam, peaks ->
-            treatment_bam.collect { [ meta, it, peaks ] }
-        }
+        .transpose()
         .set { ch_bam_peaks_treatment_bam }
 
     //
