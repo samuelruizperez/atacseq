@@ -326,6 +326,13 @@
                     "hidden": true,
                     "description": "BAMTools JSON file with custom filters for single-end data.",
                     "fa_icon": "fas fa-cog"
+                },
+                "analyze_multimappers": {
+                    "type": "integer",
+                    "default": 20,
+                    "description": "Output this number of multimapping reads from the alignment step and include them in peak calling.",
+                    "help_text": "This will include non-unique reads in the alignment (Bowtie2 and STAR) and peak calling steps (Genrich).",
+                    "fa_icon": "fas fa-chart-bar"
                 }
             }
         },

@@ -175,6 +175,15 @@ workflow ATACSEQ {
     ch_versions = ch_versions.mix(FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.versions)
 
     //
+    // Check if analyze_multimappers is set
+    //
+    if (params.analyze_multimappers) {
+        if (params.aligner == 'bwa' or params.aligner == 'chromap') {
+            exit 1, 'Multimapper analysis is only supported for Bowtie2 or STAR so far'
+        }
+    }
+
+    //
     // SUBWORKFLOW: Alignment with BWA & BAM QC
     //
     ch_genome_bam        = Channel.empty()
