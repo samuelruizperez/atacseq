@@ -178,7 +178,7 @@ workflow ATACSEQ {
     // Check if analyze_multimappers is set
     //
     if (params.analyze_multimappers) {
-        if (params.aligner == 'bwa' or params.aligner == 'chromap') {
+        if (params.aligner == 'bwa' || params.aligner == 'chromap') {
             exit 1, 'Multimapper analysis is only supported for Bowtie2 or STAR so far'
         }
     }
