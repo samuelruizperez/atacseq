@@ -458,55 +458,52 @@ workflow ATACSEQ {
     //
     // SUBWORKFLOW: Call peaks with MACS2, annotate with HOMER and perform downstream QC
     //
-    if (params.peak_caller == 'macs2') {
-        MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_MACS2 (
+    MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_MACS2 (
+        ch_bam_library,
+        PREPARE_GENOME.out.fasta,
+        PREPARE_GENOME.out.gtf,
+        PREPARE_GENOME.out.macs_gsize,
+        ".mLb.clN_peaks.annotatePeaks.txt",
+        ch_multiqc_merged_library_peak_count_header,
+        ch_multiqc_merged_library_frip_score_header,
+        ch_multiqc_merged_library_peak_annotation_header,
+        params.narrow_peak,
+        params.skip_peak_annotation,
+        params.skip_peak_qc
+    )
+    ch_library_peaks                        = MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_MACS2.out.peaks
+    ch_library_frip_multiqc                 = MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_MACS2.out.frip_multiqc
+    ch_library_peak_count_multiqc           = MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_MACS2.out.peak_count_multiqc
+    ch_library_plot_homer_annotatepeaks_tsv = MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_MACS2.out.plot_homer_annotatepeaks_tsv
+    
+    ch_versions = ch_versions.mix(MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_MACS2.out.versions)
+
+    //
+    // SUBWORKFLOW: Consensus peaks analysis
+    //
+    ch_macs2_consensus_library_bed       = Channel.empty()
+    ch_featurecounts_library_multiqc     = Channel.empty()
+    ch_deseq2_pca_library_multiqc        = Channel.empty()
+    ch_deseq2_clustering_library_multiqc = Channel.empty()
+    if (!params.skip_consensus_peaks) {
+        MERGED_LIBRARY_CONSENSUS_PEAKS (
+            ch_library_peaks,
             ch_bam_library,
             PREPARE_GENOME.out.fasta,
             PREPARE_GENOME.out.gtf,
-            PREPARE_GENOME.out.macs_gsize,
-            ".mLb.clN_peaks.annotatePeaks.txt",
-            ch_multiqc_merged_library_peak_count_header,
-            ch_multiqc_merged_library_frip_score_header,
-            ch_multiqc_merged_library_peak_annotation_header,
+            ch_multiqc_merged_library_deseq2_pca_header,
+            ch_multiqc_merged_library_deseq2_clustering_header,
             params.narrow_peak,
             params.skip_peak_annotation,
-            params.skip_peak_qc
+            params.skip_deseq2_qc
         )
-        ch_library_peaks                        = MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_MACS2.out.peaks
-        ch_library_frip_multiqc                 = MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_MACS2.out.frip_multiqc
-        ch_library_peak_count_multiqc           = MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_MACS2.out.peak_count_multiqc
-        ch_library_plot_homer_annotatepeaks_tsv = MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_MACS2.out.plot_homer_annotatepeaks_tsv
-        
-        ch_versions = ch_versions.mix(MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_MACS2.out.versions)
-    
-        //
-        // SUBWORKFLOW: Consensus peaks analysis
-        //
-        ch_macs2_consensus_library_bed       = Channel.empty()
-        ch_featurecounts_library_multiqc     = Channel.empty()
-        ch_deseq2_pca_library_multiqc        = Channel.empty()
-        ch_deseq2_clustering_library_multiqc = Channel.empty()
-        if (!params.skip_consensus_peaks) {
-            MERGED_LIBRARY_CONSENSUS_PEAKS (
-                ch_library_peaks,
-                ch_bam_library,
-                PREPARE_GENOME.out.fasta,
-                PREPARE_GENOME.out.gtf,
-                ch_multiqc_merged_library_deseq2_pca_header,
-                ch_multiqc_merged_library_deseq2_clustering_header,
-                params.narrow_peak,
-                params.skip_peak_annotation,
-                params.skip_deseq2_qc
-            )
-            ch_macs2_consensus_library_bed       = MERGED_LIBRARY_CONSENSUS_PEAKS.out.consensus_bed
-            ch_featurecounts_library_multiqc     = MERGED_LIBRARY_CONSENSUS_PEAKS.out.featurecounts_summary
-            ch_deseq2_pca_library_multiqc        = MERGED_LIBRARY_CONSENSUS_PEAKS.out.deseq2_qc_pca_multiqc
-            ch_deseq2_clustering_library_multiqc = MERGED_LIBRARY_CONSENSUS_PEAKS.out.deseq2_qc_dists_multiqc
-            ch_versions = ch_versions.mix(MERGED_LIBRARY_CONSENSUS_PEAKS.out.versions)
-        }
-
+        ch_macs2_consensus_library_bed       = MERGED_LIBRARY_CONSENSUS_PEAKS.out.consensus_bed
+        ch_featurecounts_library_multiqc     = MERGED_LIBRARY_CONSENSUS_PEAKS.out.featurecounts_summary
+        ch_deseq2_pca_library_multiqc        = MERGED_LIBRARY_CONSENSUS_PEAKS.out.deseq2_qc_pca_multiqc
+        ch_deseq2_clustering_library_multiqc = MERGED_LIBRARY_CONSENSUS_PEAKS.out.deseq2_qc_dists_multiqc
+        ch_versions = ch_versions.mix(MERGED_LIBRARY_CONSENSUS_PEAKS.out.versions)
     }
-    
+
     //
     // MODULE: Sort BAMs by name before calling peaks with Genrich
     //
@@ -718,26 +715,26 @@ workflow ATACSEQ {
         //
         // SUBWORKFLOW: Call peaks with MACS2, annotate with HOMER and perform downstream QC
         //
-        if (params.peak_caller == 'macs2') { 
-            MERGED_REPLICATE_CALL_ANNOTATE_PEAKS_MACS2 (
-                ch_bam_replicate,
-                PREPARE_GENOME.out.fasta,
-                PREPARE_GENOME.out.gtf,
-                PREPARE_GENOME.out.macs_gsize,
-                ".mRp.clN_peaks.annotatePeaks.txt",
-                ch_multiqc_merged_replicate_peak_count_header,
-                ch_multiqc_merged_replicate_frip_score_header,
-                ch_multiqc_merged_replicate_peak_annotation_header,
-                params.narrow_peak,
-                params.skip_peak_annotation,
-                params.skip_peak_qc
-            )
-            ch_macs2_replicate_peaks                            = MERGED_REPLICATE_CALL_ANNOTATE_PEAKS_MACS2.out.peaks
-            ch_macs2_frip_replicate_multiqc                     = MERGED_REPLICATE_CALL_ANNOTATE_PEAKS_MACS2.out.frip_multiqc
-            ch_macs2_peak_count_replicate_multiqc               = MERGED_REPLICATE_CALL_ANNOTATE_PEAKS_MACS2.out.peak_count_multiqc
-            ch_macs2_plot_homer_annotatepeaks_replicate_multiqc = MERGED_REPLICATE_CALL_ANNOTATE_PEAKS_MACS2.out.plot_homer_annotatepeaks_tsv
-            ch_versions = ch_versions.mix(MERGED_REPLICATE_CALL_ANNOTATE_PEAKS_MACS2.out.versions)
-        }
+        
+        MERGED_REPLICATE_CALL_ANNOTATE_PEAKS_MACS2 (
+            ch_bam_replicate,
+            PREPARE_GENOME.out.fasta,
+            PREPARE_GENOME.out.gtf,
+            PREPARE_GENOME.out.macs_gsize,
+            ".mRp.clN_peaks.annotatePeaks.txt",
+            ch_multiqc_merged_replicate_peak_count_header,
+            ch_multiqc_merged_replicate_frip_score_header,
+            ch_multiqc_merged_replicate_peak_annotation_header,
+            params.narrow_peak,
+            params.skip_peak_annotation,
+            params.skip_peak_qc
+        )
+        ch_macs2_replicate_peaks                            = MERGED_REPLICATE_CALL_ANNOTATE_PEAKS_MACS2.out.peaks
+        ch_macs2_frip_replicate_multiqc                     = MERGED_REPLICATE_CALL_ANNOTATE_PEAKS_MACS2.out.frip_multiqc
+        ch_macs2_peak_count_replicate_multiqc               = MERGED_REPLICATE_CALL_ANNOTATE_PEAKS_MACS2.out.peak_count_multiqc
+        ch_macs2_plot_homer_annotatepeaks_replicate_multiqc = MERGED_REPLICATE_CALL_ANNOTATE_PEAKS_MACS2.out.plot_homer_annotatepeaks_tsv
+        ch_versions = ch_versions.mix(MERGED_REPLICATE_CALL_ANNOTATE_PEAKS_MACS2.out.versions)
+    
         //
         // SUBWORKFLOW: Consensus peaks analysis
         //

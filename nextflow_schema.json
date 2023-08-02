@@ -342,14 +342,7 @@
             "fa_icon": "fas fa-chart-area",
             "description": "Options to adjust peak calling criteria.",
             "properties": {
-                "peak_caller": {
-                    "type": "string",
-                    "default": "macs2",
-                    "description": "Specifies the peak caller to use - available options are 'macs2' and 'genrich'.",
-                    "fa_icon": "fas fa-chart-area",
-                    "enum": ["macs2", "genrich"]
-                },
-                "narrow_peak": {
+                    "narrow_peak": {
                     "type": "boolean",
                     "description": "Run MACS2 in narrowPeak mode.",
                     "help_text": "MACS2 is run by default with the [`--broad`](https://github.com/taoliu/MACS#--broad) flag. Specify this flag to call peaks in narrowPeak mode.",
