@@ -78,6 +78,13 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
 
     ch_bam_peaks
         .transpose()
+        .map {
+            meta, treatment_bam, peaks ->
+            def meta_clone = meta.clone()
+            // id is name of treatment bam up until the first dot
+            meta_clone.id = meta_clone.id.split("\\.")[0]
+            [ meta_clone, treatment_bam, peaks ]
+        }
         .set { ch_bam_peaks_treatment_bam }
 
     //
