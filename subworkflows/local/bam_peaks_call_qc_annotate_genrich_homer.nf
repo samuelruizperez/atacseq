@@ -4,7 +4,7 @@
 
 include { GENRICH           } from '../../modules/nf-core/genrich/main'
 include { HOMER_ANNOTATEPEAKS      } from '../../modules/nf-core/homer/annotatepeaks/main'
-include { HOMER_DETAIL_ANNOTATEPEAKS    } from '../../modules/local/homer_detail_ann'
+include { HOMER_DETAIL_ANNOTATEPEAKS    } from '../../modules/local/homer_detailed_ann'
 
 include { FRIP_SCORE               } from '../../modules/local/frip_score'
 include { MULTIQC_CUSTOM_PEAKS     } from '../../modules/local/multiqc_custom_peaks'
