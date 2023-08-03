@@ -4,6 +4,7 @@
 
 include { GENRICH           } from '../../modules/nf-core/genrich/main'
 include { HOMER_ANNOTATEPEAKS      } from '../../modules/nf-core/homer/annotatepeaks/main'
+include { HOMER_DETAIL_ANNOTATEPEAKS    } from '../../modules/local/homer_detail_ann'
 
 include { FRIP_SCORE               } from '../../modules/local/frip_score'
 include { MULTIQC_CUSTOM_PEAKS     } from '../../modules/local/multiqc_custom_peaks'
@@ -17,6 +18,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
     ch_bam                            // channel: [ val(meta), [ treatment_bam ], [ control_bam ] ]
     ch_fasta                          // channel: [ fasta ]
     ch_gtf                            // channel: [ gtf ]
+    genome                            // string: genome name
     ch_blacklist_regions              // channel: [ bed ]
     annotate_peaks_suffix             // string: suffix for input HOMER annotate peaks files to be trimmed off
     ch_peak_count_header_multiqc      // channel: [ header_file ]
@@ -131,7 +133,18 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
         ch_homer_annotatepeaks = HOMER_ANNOTATEPEAKS.out.txt
         ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS.out.versions.first())
 
-////// TODO adapt this to genrich    
+        // if genome argument is provided
+        if (genome) {
+            HOMER_DETAIL_ANNOTATEPEAKS (
+                ch_genrich_peaks,
+                genome
+            )
+            ch_homer_det_annotatepeaks = HOMER_DETAIL_ANNOTATEPEAKS.out.txt
+            ch_versions = ch_versions.mix(HOMER_DETAIL_ANNOTATEPEAKS.out.versions.first())
+        }
+
+
+
         if (!skip_peak_qc) {
             //
             // Genrich QC plots with R
@@ -172,7 +185,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
     peak_count_multiqc           = MULTIQC_CUSTOM_PEAKS.out.count   // channel: [ val(meta), [ counts ] ]
 
     homer_annotatepeaks          = ch_homer_annotatepeaks           // channel: [ val(meta), [ txt ] ]
-
+    homer_det_annotatepeaks      = ch_homer_det_annotatepeaks       // channel: [ val(meta), [ txt ] ]
     plot_genrich_qc_txt          = ch_plot_genrich_qc_txt             // channel: [ txt ]
     plot_genrich_qc_pdf          = ch_plot_genrich_qc_pdf             // channel: [ pdf ]
 

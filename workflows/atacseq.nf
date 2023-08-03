@@ -556,6 +556,7 @@ workflow ATACSEQ {
         ch_merged_library_bams_sep,
         PREPARE_GENOME.out.fasta,
         PREPARE_GENOME.out.gtf,
+        params.genome,
         PREPARE_GENOME.out.blacklist_bed.first(),
         ".mLb.genrich.peaks.annotatePeaks.txt",
         ch_multiqc_merged_library_sep_genrich_peak_count_header,
