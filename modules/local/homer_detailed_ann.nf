@@ -24,6 +24,14 @@ process HOMER_DETAIL_ANNOTATEPEAKS {
     def prefix = task.ext.prefix ?: "${meta.id}"
     def VERSION = '4.11' // WARN: Version information not provided by tool on CLI. Please update this string when bumping container versions.
     """
+    installed=$(configureHomer.pl -list)
+    line=$(echo "$installed" | grep "$genome")
+    yes_or_no=${line:0:1}
+
+    if [ "$yes_or_no" != "+" ]; then
+        configureHomer.pl -install $genome
+    fi
+
     annotatePeaks.pl \\
         $peak \\
         $genome \\
