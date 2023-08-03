@@ -82,7 +82,9 @@ include { PREPARE_GENOME } from '../subworkflows/local/prepare_genome'
 include { ALIGN_STAR     } from '../subworkflows/local/align_star'
 include { BIGWIG_PLOT_DEEPTOOLS as MERGED_LIBRARY_BIGWIG_PLOT_DEEPTOOLS       } from '../subworkflows/local/bigwig_plot_deeptools'
 include { BAM_FILTER_BAMTOOLS as MERGED_LIBRARY_FILTER_BAM                    } from '../subworkflows/local/bam_filter_bamtools'
+include { BAM_NOFILTER_BAMTOOLS as MERGED_LIBRARY_NOFILTER_BAM                } from '../subworkflows/local/bam_nofilter_bamtools'
 include { BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC as MERGED_LIBRARY_BAM_TO_BIGWIG   } from '../subworkflows/local/bam_bedgraph_bigwig_bedtools_ucsc'
+include { BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC as MERGED_LIBRARY_NF_BAM_TO_BIGWIG   } from '../subworkflows/local/bam_bedgraph_bigwig_bedtools_ucsc'
 include { BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC as MERGED_REPLICATE_BAM_TO_BIGWIG } from '../subworkflows/local/bam_bedgraph_bigwig_bedtools_ucsc'
 
 include { BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER as MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_MACS2          } from '../subworkflows/local/bam_peaks_call_qc_annotate_macs2_homer.nf'
@@ -504,6 +506,27 @@ workflow ATACSEQ {
         ch_versions = ch_versions.mix(MERGED_LIBRARY_CONSENSUS_PEAKS.out.versions)
     }
 
+    // SUBWORKFLOW: Generate stats for unfiltered BAMs
+    MERGED_LIBRARY_NOFILTER_BAM (
+        PICARD_MERGESAMFILES_LIBRARY.out.bam,
+        PREPARE_GENOME
+            .out
+            .fasta
+            .map {
+                [ [:], it ]
+            }
+    )
+    ch_versions = ch_versions.mix(MERGED_LIBRARY_NOFILTER_BAM.out.versions.first())
+        
+    //
+    // SUBWORKFLOW: Normalised bigWig coverage tracks
+    //
+    MERGED_LIBRARY_NF_BAM_TO_BIGWIG (
+        MERGED_LIBRARY_NOFILTER_BAM.out.bam.join(MERGED_LIBRARY_NOFILTER_BAM.out.flagstat, by: [0]),
+        PREPARE_GENOME.out.chrom_sizes
+    )
+    ch_versions = ch_versions.mix(MERGED_LIBRARY_NF_BAM_TO_BIGWIG.out.versions)
+
     //
     // MODULE: Sort BAMs by name before calling peaks with Genrich
     //
@@ -816,6 +839,11 @@ workflow ATACSEQ {
             ch_ucsc_bedgraphtobigwig_replicate_bigwig.collect{it[1]}.ifEmpty([]),
             ch_macs2_replicate_peaks.collect{it[1]}.ifEmpty([]),
             ch_macs2_consensus_replicate_bed.collect{it[1]}.ifEmpty([]),
+
+            MERGED_LIBRARY_NF_BAM_TO_BIGWIG.out.bigwig.collect{it[1]}.ifEmpty([]),
+            ch_library_genrich_sep_peaks.collect{it[1]}.ifEmpty([]),
+            ch_library_genrich_joint_peaks.collect{it[1]}.ifEmpty([]),
+
             "${params.aligner}/merged_library/bigwig",
             { ["${params.aligner}/merged_library/macs2",
                 params.narrow_peak? '/narrow_peak' : '/broad_peak'
@@ -832,6 +860,15 @@ workflow ATACSEQ {
                 params.narrow_peak? '/narrow_peak' : '/broad_peak',
                 "/consensus"
                 ].join('') },
+            
+            "${params.aligner}/merged_library/genrich/bigwig",
+            { ["${params.aligner}/merged_library/genrich/sep",
+                params.narrow_peak? '/narrow_peak' : '/broad_peak'
+                ].join('') },
+            { ["${params.aligner}/merged_library/genrich/joint",
+                params.narrow_peak? '/narrow_peak' : '/broad_peak'
+                ].join('') },
+
         )
         ch_versions = ch_versions.mix(IGV.out.versions)
     }
