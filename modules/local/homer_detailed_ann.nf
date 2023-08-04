@@ -3,6 +3,7 @@ process HOMER_DETAIL_ANNOTATEPEAKS {
     label 'process_medium'
 
     // WARN: Version information not provided by tool on CLI. Please update version string below when bumping container versions.
+    // configureHomer.pl does not work with docker or singularity, so we use conda (see: https://github.com/bioconda/bioconda-recipes/blob/master/recipes/homer/README.txt)
     conda "bioconda::homer=4.11"
 
     input:
