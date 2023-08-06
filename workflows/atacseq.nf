@@ -592,7 +592,7 @@ workflow ATACSEQ {
         params.save_genrich_pileup,
         params.save_genrich_bed,
         params.save_genrich_duplicates,
-        params.detail_peak_annotation
+        params.homer_detail_annotation
     )
     ch_library_genrich_sep_peaks                         = MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH.out.peaks
     ch_library_genrich_sep_frip_multiqc                  = MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH.out.frip_multiqc
@@ -819,7 +819,7 @@ workflow ATACSEQ {
         params.save_genrich_pileup,
         params.save_genrich_bed,
         params.save_genrich_duplicates,
-        params.detail_peak_annotation
+        params.homer_detail_annotation
     )
     ch_library_genrich_joint_peaks                         = MERGED_LIBRARY_JOINT_CALL_ANNOTATE_PEAKS_GENRICH.out.peaks
     ch_library_genrich_joint_frip_multiqc                  = MERGED_LIBRARY_JOINT_CALL_ANNOTATE_PEAKS_GENRICH.out.frip_multiqc
