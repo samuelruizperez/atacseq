@@ -422,6 +422,11 @@
                     "default": 0.1,
                     "description": "Minimum p-value cutoff for peak detection.",
                     "fa_icon": "fas fa-sort-amount-down"
+                },
+                "homer_detail_annotation": {
+                    "type": "boolean",
+                    "description": "Annotate peaks with HOMER in detailed mode.",
+                    "fa_icon": "fas fa-search-plus"
                 }
 
             }

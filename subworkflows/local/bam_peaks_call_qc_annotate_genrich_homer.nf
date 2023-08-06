@@ -33,6 +33,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
     save_pileup                       // boolean: true/false
     save_bed                          // boolean: true/false
     save_duplicates                   // boolean: true/false
+    detailed_annotation               // boolean: true/false
 
 
     main:
@@ -133,17 +134,19 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
         ch_homer_annotatepeaks = HOMER_ANNOTATEPEAKS.out.txt
         ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS.out.versions.first())
 
-        // if genome argument is provided
-        if (genome) {
+        if (detailed_annotation) {
+            //
+            // Annotate peaks with HOMER (detailed)
+            //
+            if (genome) {
             HOMER_DETAIL_ANNOTATEPEAKS (
                 ch_genrich_peaks,
                 genome
             )
             ch_homer_det_annotatepeaks = HOMER_DETAIL_ANNOTATEPEAKS.out.txt
             ch_versions = ch_versions.mix(HOMER_DETAIL_ANNOTATEPEAKS.out.versions.first())
+            }        
         }
-
-
 
         if (!skip_peak_qc) {
             //
