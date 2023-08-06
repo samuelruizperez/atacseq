@@ -117,6 +117,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
     ch_versions = ch_versions.mix(MULTIQC_CUSTOM_PEAKS.out.versions.first())
 
     ch_homer_annotatepeaks              = Channel.empty()
+    ch_homer_det_annotatepeaks          = Channel.empty()
     ch_plot_genrich_qc_txt              = Channel.empty()
     ch_plot_genrich_qc_pdf              = Channel.empty()
     ch_plot_homer_annotatepeaks_txt     = Channel.empty()
