@@ -29,7 +29,7 @@ process GENOME_BLACKLIST_REGIONS {
         """
         sortBed -i $blacklist -g $sizes | complementBed -i stdin -g $sizes $mito_filter > $whitelist
         complementBed -i $whitelist -g $sizes > $blacklist_out
-        
+
         cat <<-END_VERSIONS > versions.yml
         "${task.process}":
             bedtools: \$(bedtools --version | sed -e "s/bedtools v//g")
