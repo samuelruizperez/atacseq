@@ -13,7 +13,7 @@ workflow BAM_NOFILTER_BAMTOOLS {
     ch_versions = Channel.empty()
 
     ch_bam
-        .branch { 
+        .branch {
             meta, bam ->
                 single_end: meta.single_end
                     return [ meta, bam ]
@@ -46,14 +46,6 @@ workflow BAM_NOFILTER_BAMTOOLS {
         ch_bam_b.paired_end
     )
     ch_versions = ch_versions.mix(SAMTOOLS_SORT.out.versions.first())
-
-    //
-    // Remove orphan reads from PE BAM file
-    //
-    //BAM_REMOVE_ORPHANS (
-    //    SAMTOOLS_SORT.out.bam
-    //)
-    //ch_versions = ch_versions.mix(BAM_REMOVE_ORPHANS.out.versions.first())
 
     //
     // Sort, index PE BAM file and run samtools stats, flagstat and idxstats
