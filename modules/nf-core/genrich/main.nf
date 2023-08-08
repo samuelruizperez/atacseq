@@ -27,8 +27,8 @@ process GENRICH {
     task.ext.when == null || task.ext.when
 
     script:
-    def args       = task.ext.args   ?      : ""
-    def prefix     = task.ext.prefix ?      : "${meta.id}"
+    def args       = task.ext.args   ?: ""
+    def prefix     = task.ext.prefix ?: "${meta.id}"
     def layout     = meta.single_end ? "-y" : ""
     def treatment  = treatment_bam   ? "-t ${treatment_bam.sort().join(',')}"   : ""
     def control    = control_bam     ? "-c ${control_bam.sort().join(',')}"     : ""
