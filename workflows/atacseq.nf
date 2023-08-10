@@ -126,7 +126,6 @@ include { FASTQ_ALIGN_CHROMAP              } from '../subworkflows/nf-core/fastq
 
 include { BAM_MARKDUPLICATES_PICARD as MERGED_LIBRARY_MARKDUPLICATES_PICARD   } from '../subworkflows/nf-core/bam_markduplicates_picard/main'
 include { BAM_MARKDUPLICATES_PICARD as MERGED_REPLICATE_MARKDUPLICATES_PICARD } from '../subworkflows/nf-core/bam_markduplicates_picard/main'
-include { BAM_SORT_STATS_SAMTOOLS as NOFILT_BAM_SORT_STATS_SAMTOOLS } from '../subworkflows/nf-core/bam_sort_stats_samtools/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -509,7 +508,7 @@ workflow ATACSEQ {
     //
     // SUBWORKFLOW: Sort by name and generate stats for unfiltered BAMs
     //
-    NOFILT_BAM_SORT_STATS_SAMTOOLS (
+    MERGED_LIBRARY_NOFILTER_BAM (
         PICARD_MERGESAMFILES_LIBRARY.out.bam,
         PREPARE_GENOME
             .out
@@ -518,14 +517,15 @@ workflow ATACSEQ {
                 [ [:], it ]
             }
     )
-    ch_bam = NOFILT_BAM_SORT_STATS_SAMTOOLS.out.bam
-    ch_versions = ch_versions.mix(NOFILT_BAM_SORT_STATS_SAMTOOLS.out.versions.first())
+    ch_bam = MERGED_LIBRARY_NOFILTER_BAM.out.bam
+    ch_name_bam = MERGED_LIBRARY_NOFILTER_BAM.out.name_bam
+    ch_versions = ch_versions.mix(MERGED_LIBRARY_NOFILTER_BAM.out.versions.first())
 
     //
     // SUBWORKFLOW: Normalised bigWig coverage tracks
     //
     MERGED_LIBRARY_NF_BAM_TO_BIGWIG (
-        ch_bam.join(NOFILT_BAM_SORT_STATS_SAMTOOLS.out.flagstat, by: [0]),
+        ch_bam.join(MERGED_LIBRARY_NOFILTER_BAM.out.flagstat, by: [0]),
         PREPARE_GENOME.out.chrom_sizes
     )
     ch_versions = ch_versions.mix(MERGED_LIBRARY_NF_BAM_TO_BIGWIG.out.versions)
@@ -533,33 +533,33 @@ workflow ATACSEQ {
 
     // Create channels: [ meta, [bam] ] or [ meta, [ bam, control_bam ] ] (now for Genrich)
     if (params.with_control) {
-        ch_bam
+        ch_name_bam
             .map {
                 meta, bam ->
                     meta.control ? null : [ meta.id, [ bam ] ]
             }
             .set { ch_control_bam }
 
-        ch_bam
+        ch_name_bam
             .map {
                 meta, bam ->
                     meta.control ? [ meta.control, meta, [ bam ] ] : null
             }
             .combine(ch_control_bam, by: 0)
             .map { it -> [ it[1] , it[2] + it[4] ] }
-            .set { ch_bam }
+            .set { ch_name_bam }
     }
 
     // Create channel: [ val(meta), bam, control_bam ] (now for Genrich)
     if (params.with_control) {
-        ch_bam
+        ch_name_bam
             .map {
                 meta, bams ->
                     [ meta , bams[0], bams[1] ]
             }
             .set { ch_merged_library_bams_sep }
     } else {
-        ch_bam
+        ch_name_bam
             .map {
                 meta, bam ->
                     [ meta , bam, [] ]

@@ -57,8 +57,8 @@ workflow BAM_NOFILTER_BAMTOOLS {
     ch_versions = ch_versions.mix(BAM_SORT_STATS_SAMTOOLS.out.versions.first())
 
     emit:
-    name_bam = SAMTOOLS_SORT.out.bam                                                     // channel: [ val(meta), [ bam ] ]
-    bam      = BAM_SORT_STATS_SAMTOOLS.out.bam.mix(ch_bam_b.single_end)                    // channel: [ val(meta), [ bam ] ]
+    name_bam = SAMTOOLS_SORT.out.bam.mix(ch_bam_b.single_end)                            // channel: [ val(meta), [ bam ] ]
+    bam      = BAM_SORT_STATS_SAMTOOLS.out.bam.mix(ch_bam_b.single_end)                  // channel: [ val(meta), [ bam ] ]
     stats    = BAM_SORT_STATS_SAMTOOLS.out.stats.mix(BAM_STATS_SAMTOOLS.out.stats)       // channel: [ val(meta), [ stats ] ]
     flagstat = BAM_SORT_STATS_SAMTOOLS.out.flagstat.mix(BAM_STATS_SAMTOOLS.out.flagstat) // channel: [ val(meta), [ flagstat ] ]
     idxstats = BAM_SORT_STATS_SAMTOOLS.out.idxstats.mix(BAM_STATS_SAMTOOLS.out.idxstats) // channel: [ val(meta), [ idxstats ] ]
